@@ -1,0 +1,17 @@
+# Dipendenze
+node_modules/
+
+# File generati dalla compilazione
+dist/
+
+# Credenziali e variabili d'ambiente
+.env
+.env.*
+!.env.example
+
+# Log
+*.log
+
+# File temporanei
+.DS_Store
+Thumbs.db
