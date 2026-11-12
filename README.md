@@ -1,33 +1,39 @@
-# JANUS — prototipo form e dashboard
+# JANUS Digital Campus
 
-Prototipo React + TypeScript del form pubblico di orientamento JANUS e di una dashboard staff dimostrativa.
-
-## Contenuti
-
-- Il form è un flusso guidato in tre passaggi e usa solo i campi minimi per una richiesta di orientamento.
-- Le richieste vengono inviate direttamente alla Edge Function Supabase `richiesta-contatto`; il browser non accede alla tabella né usa credenziali privilegiate.
-- La dashboard è solo una demo visuale con dati inventati e selettore Admin, Supervisore, Segreteria, Amministrazione e Didattica. Non implementa autenticazione e non legge dati dal database.
-- È presente un avviso demo; per le prove usa solo nomi, recapiti e dettagli fittizi.
+Applicazione React + TypeScript del campus JANUS: pagina pubblica di orientamento e gestionale dimostrativo con login locale e sette dashboard per ruolo.
 
 ## Avvio locale
 
 1. Installa Node.js 20 o successivo.
-2. Copia `.env.example` in `.env.local`.
-3. Installa i pacchetti con `npm install`.
-4. Avvia con `npm run dev` e apri l'indirizzo locale indicato da Vite.
+2. Installa le dipendenze con `npm install`.
+3. Avvia con `npm run dev` e apri l'indirizzo locale mostrato da Vite.
+4. Premi **Accedi al campus** oppure apri `http://localhost:5173/#/login`.
 
-La chiave `sb_publishable_...` è una chiave pubblica per il client. Non inserire mai `service_role`, secret key o credenziali database nel frontend.
+In PowerShell puoi usare `npm.cmd` al posto di `npm` se l'esecuzione degli script è bloccata. Per il login demo non serve configurare Supabase.
 
-## Collegamento Supabase
+## Login demo
 
-Il client invoca `richiesta-contatto`, che valida i campi e salva direttamente `public.richieste_contatto` lato server. Gli origin `https://istitutojanus.it` e `https://www.istitutojanus.it` sono autorizzati dalla funzione. Per un nuovo dominio, aggiornare l'allowlist CORS della funzione prima della pubblicazione.
+Usa, ad esempio, `admin@janus-demo.test` e password `CampusDemo!2026`. Ogni account è associato a un ruolo e apre automaticamente la sua dashboard. Sono disponibili Admin, Supervisore, Segreteria, Amministrazione, Didattica, Tutor e Studente: credenziali, limiti e prove sono descritti in [docs/DEMO_LOGIN.md](docs/DEMO_LOGIN.md).
 
-Il testo e la versione dell'informativa mostrati nel prototipo devono essere revisionati dal titolare del trattamento prima dell'utilizzo con dati reali. Questo progetto non è una valutazione legale o una conferma di conformità normativa.
+Il login ha email/password, mostra/nascondi password, errori, sessione locale di otto ore e logout. Sidebar, KPI, grafico, attività e priorità cambiano con l'account. Le sezioni non consentite mostrano Accesso negato. Le aree operative future hanno una pagina che ne chiarisce lo stato di modulo previsto.
 
-## Architettura modulare
+**Questa demo frontend non è un'autenticazione sicura.** Le credenziali fittizie sono nel bundle e i controlli del browser sono modificabili. Usare solo account e dati sintetici. Impostare `VITE_AUTH_MODE=disabled` in `.env.local` e riavviare Vite per disabilitare la demo; ciò non attiva l'autenticazione reale.
 
-La struttura delle pagine, dei layout e dei moduli, il confronto con il piano JANUS e i passi successivi sono descritti in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+## Pagina pubblica e integrazione precedente
 
-Il codice attualmente caricato su `main` è il prototipo con cinque ruoli e selettore demo. Il login demo e le dashboard Tutor/Studente non sono presenti in questa versione; il refactor conserva le funzionalità esistenti.
+Il form pubblico di orientamento resta accessibile senza login, con tre passaggi e i campi minimi già presenti. Conserva l'invio alla Edge Function `richiesta-contatto`, separato dal login demo. Nessun invio viene eseguito dai test. La dashboard non legge record dal database.
 
-Verifica la compilazione con `npm run build` e l'equivalenza del markup rispetto al commit iniziale con `npm run verify:refactor`. Il secondo comando usa solo rendering locale, blocca il client Supabase e richiede la storia Git del commit iniziale.
+La configurazione preesistente del form è illustrata in `.env.example`: copiala in `.env.local` se devi configurarla. La chiave publishable è pubblica; non inserire credenziali privilegiate o password del database nel frontend. Funzione, migrazione e client Supabase non sono modificati da questa fase.
+
+## Architettura e verifiche
+
+La prima riorganizzazione e il piano iniziale sono documentati in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). L'evoluzione successiva di login e navigazione è in [docs/DEMO_LOGIN.md](docs/DEMO_LOGIN.md).
+
+```sh
+npm run build
+npm run verify:refactor
+npm run verify:auth
+npm run verify:auth-ui
+```
+
+I test sono locali e bloccano le invocazioni Supabase. Le prove UI usano jsdom, non un browser completo; la verifica su Windows 11 e del layout responsive va completata localmente. Non è prevista alcuna pubblicazione automatica dell'applicazione.

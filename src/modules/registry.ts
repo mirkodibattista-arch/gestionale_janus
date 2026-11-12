@@ -1,6 +1,8 @@
 import {
   BookOpen,
+  CalendarDays,
   ClipboardList,
+  FileText,
   GraduationCap,
   LayoutDashboard,
   Users,
@@ -15,17 +17,24 @@ export type CampusModuleId =
   | "tutor"
   | "segreteria"
   | "didattica"
-  | "amministrazione";
+  | "amministrazione"
+  | "calendario"
+  | "documenti"
+  | "piano-studi"
+  | "esami"
+  | "materiali"
+  | "valutazioni"
+  | "profilo"
+  | "il-mio-tutor"
+  | "contratti"
+  | "pagamenti"
+  | "scadenze";
 type CampusModule = {
   id: CampusModuleId;
   label: string;
   icon: LucideIcon;
   status: "demo" | "planned";
-  badge?: string;
 };
-
-// Catalogo di estensione, non una matrice di autorizzazione o di route attive.
-// I moduli planned non implementano ancora operazioni sui dati.
 export const campusModules: Record<CampusModuleId, CampusModule> = {
   dashboard: {
     id: "dashboard",
@@ -38,7 +47,6 @@ export const campusModules: Record<CampusModuleId, CampusModule> = {
     label: "Studenti",
     icon: Users,
     status: "planned",
-    badge: "248",
   },
   iscrizioni: {
     id: "iscrizioni",
@@ -70,14 +78,70 @@ export const campusModules: Record<CampusModuleId, CampusModule> = {
     icon: WalletCards,
     status: "planned",
   },
+  calendario: {
+    id: "calendario",
+    label: "Calendario",
+    icon: CalendarDays,
+    status: "planned",
+  },
+  documenti: {
+    id: "documenti",
+    label: "Documenti",
+    icon: FileText,
+    status: "planned",
+  },
+  "piano-studi": {
+    id: "piano-studi",
+    label: "Piano di studi",
+    icon: BookOpen,
+    status: "planned",
+  },
+  esami: {
+    id: "esami",
+    label: "Esami",
+    icon: GraduationCap,
+    status: "planned",
+  },
+  materiali: {
+    id: "materiali",
+    label: "Materiali",
+    icon: FileText,
+    status: "planned",
+  },
+  valutazioni: {
+    id: "valutazioni",
+    label: "Valutazioni",
+    icon: ClipboardList,
+    status: "planned",
+  },
+  profilo: {
+    id: "profilo",
+    label: "Il mio profilo",
+    icon: Users,
+    status: "planned",
+  },
+  "il-mio-tutor": {
+    id: "il-mio-tutor",
+    label: "Il mio tutor",
+    icon: GraduationCap,
+    status: "planned",
+  },
+  contratti: {
+    id: "contratti",
+    label: "Contratti",
+    icon: FileText,
+    status: "planned",
+  },
+  pagamenti: {
+    id: "pagamenti",
+    label: "Pagamenti",
+    icon: WalletCards,
+    status: "planned",
+  },
+  scadenze: {
+    id: "scadenze",
+    label: "Scadenze",
+    icon: CalendarDays,
+    status: "planned",
+  },
 };
-
-// Ordine e voci visibili del prototipo su main, conservati in questa PR.
-export const dashboardNavigation: CampusModuleId[] = [
-  "dashboard",
-  "studenti",
-  "iscrizioni",
-  "segreteria",
-  "amministrazione",
-  "didattica",
-];

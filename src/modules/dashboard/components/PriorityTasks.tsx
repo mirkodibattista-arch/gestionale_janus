@@ -1,64 +1,49 @@
-import { ArrowRight } from "lucide-react";
-
-export function PriorityTasks() {
+import type { Role } from "../../../types/roles";
+import { roleTasks } from "../demoData";
+export function PriorityTasks({ role }: { role: Role }) {
   return (
     <section className="panel tasks-panel">
       <div className="panel-heading">
         <div>
-          <h2>Pratiche da seguire</h2>
-          <p>Una vista rapida delle priorità</p>
+          <h2>
+            {role === "Tutor"
+              ? "Studenti e prossime lezioni"
+              : role === "Studente"
+                ? "I tuoi prossimi passi"
+                : "Attività da seguire"}
+          </h2>
+          <p>Una vista rapida delle tue priorità · dati fittizi</p>
         </div>
-        <button className="text-action">
-          Apri elenco <ArrowRight size={14} />
-        </button>
       </div>
       <div className="table-scroll">
         <table>
           <thead>
             <tr>
-              <th>STUDENTE</th>
-              <th>ATTIVITÀ</th>
-              <th>REFERENTE</th>
-              <th>SCADENZA</th>
-              <th>STATO</th>
+              {[
+                role === "Studente" ? "MATERIA" : "VOCE",
+                "ATTIVITÀ",
+                "AREA",
+                "SCADENZA",
+                "STATO",
+              ].map((header) => (
+                <th key={header}>{header}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {[
-              [
-                "Alessio R.",
-                "Documenti da verificare",
-                "Segreteria",
-                "Oggi",
-                "Da verificare",
-              ],
-              [
-                "Giulia M.",
-                "Assegnazione tutor",
-                "Didattica",
-                "Domani",
-                "In corso",
-              ],
-              [
-                "Davide P.",
-                "Rata mensile",
-                "Amministrazione",
-                "18 Nov",
-                "In scadenza",
-              ],
-            ].map((r, i) => (
-              <tr key={r[0]}>
+            {roleTasks[role].map((row, i) => (
+              <tr key={row[0]}>
                 <td>
                   <span className={`student-avatar s${i}`}>
-                    {r[0].slice(0, 1)}
+                    {row[0].slice(0, 1)}
                   </span>
-                  {r[0]}
+                  {row[0]}
                 </td>
-                <td>{r[1]}</td>
-                <td>{r[2]}</td>
-                <td>{r[3]}</td>
+                <td>{row[1]}</td>
+                <td>{row[2]}</td>
+                <td>{row[3]}</td>
                 <td>
-                  <span className={`status status-${i}`}>{r[4]}</span>
+                  <span className={`status status-${i}`}>{row[4]}</span>
                 </td>
               </tr>
             ))}

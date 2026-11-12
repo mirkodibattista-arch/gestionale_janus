@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "verify:refactor": "node scripts/verify-refactor.cjs"
+    "verify:refactor": "node scripts/verify-refactor.cjs",
+    "verify:auth": "node scripts/verify-auth.cjs",
+    "verify:auth-ui": "node scripts/verify-auth-ui.cjs && node scripts/verify-auth-ui.cjs --disabled"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.95.0",
@@ -23,6 +25,7 @@
     "@types/react": "18.3.18",
     "@types/react-dom": "18.3.5",
     "@vitejs/plugin-react": "4.3.4",
+    "jsdom": "26.1.0",
     "tailwindcss": "4.1.11",
     "typescript": "5.7.3",
     "vite": "6.0.7"
