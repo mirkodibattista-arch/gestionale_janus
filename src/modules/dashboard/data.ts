@@ -49,4 +49,23 @@ export const roleStats: Record<
       "Esami programmati",
     ],
   },
+  Tutor: {
+    intro: "Lezioni, materiali e studenti assegnati al tuo account demo.",
+    items: [
+      "Studenti assegnati",
+      "Lezioni questa settimana",
+      "Valutazioni da inserire",
+      "Ore di tutoraggio",
+    ],
+  },
+  Studente: {
+    intro:
+      "Il tuo percorso, le prossime lezioni e i traguardi verso il diploma.",
+    items: [
+      "Progresso formativo",
+      "Materie completate",
+      "Prossima lezione",
+      "Obiettivo diploma",
+    ],
+  },
 };

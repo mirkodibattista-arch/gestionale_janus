@@ -1,42 +1,62 @@
 import { useState, type ReactNode } from "react";
-import { Bell, Menu, Search, ShieldCheck } from "lucide-react";
+import { Bell, Home, LogOut, Menu, ShieldCheck } from "lucide-react";
 import { Brand } from "../components/Brand";
-import { campusModules, dashboardNavigation } from "../modules/registry";
+import { useAuth } from "../modules/auth/AuthProvider";
+import type { AuthSession } from "../modules/auth/types";
+import { campusModules, type CampusModuleId } from "../modules/registry";
+import { moduleLabel, navigate, roleModules } from "../routing/routes";
 
-export function DashboardLayout({ children }: { children: ReactNode }) {
+type DashboardLayoutProps = {
+  children: ReactNode;
+  session: AuthSession;
+  activeModule?: CampusModuleId;
+};
+export function DashboardLayout({
+  children,
+  session,
+  activeModule = "dashboard",
+}: DashboardLayoutProps) {
+  const { signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [noticeOpen, setNoticeOpen] = useState(false);
+  const links = roleModules[session.role];
+  const logout = () => {
+    signOut();
+    navigate("#/login");
+  };
+  const navLinks = () =>
+    links.map((id) => {
+      const Icon = campusModules[id].icon;
+      return (
+        <a
+          key={id}
+          className={`dash-nav-item${id === activeModule ? " active" : ""}`}
+          href={`#/campus/${id}`}
+          onClick={() => setMenuOpen(false)}
+          aria-current={id === activeModule ? "page" : undefined}
+        >
+          <Icon size={17} /> {moduleLabel(session.role, id)}
+        </a>
+      );
+    });
   return (
     <main className="dashboard-shell">
       <aside className="dash-sidebar">
-        <Brand />
+        <a href="#/" aria-label="Home JANUS">
+          <Brand />
+        </a>
         <div className="demo-pill">
-          <span /> PROTOTIPO DEMO
+          <span /> DEMO LOCALE
         </div>
-        <div className="dash-nav-label">WORKSPACE</div>
-        <nav className="dash-nav">
-          {dashboardNavigation.map((id) => {
-            const { label, icon: Icon, badge } = campusModules[id];
-            return (
-              <div
-                key={id}
-                className={`dash-nav-item${id === "dashboard" ? " active" : ""}`}
-              >
-                <Icon size={17} /> {label}
-                {badge && (
-                  <>
-                    {" "}
-                    <span className="nav-count">{badge}</span>
-                  </>
-                )}
-              </div>
-            );
-          })}
+        <div className="dash-nav-label">IL TUO CAMPUS</div>
+        <nav className="dash-nav" aria-label="Navigazione campus">
+          {navLinks()}
         </nav>
         <div className="sidebar-bottom">
           <ShieldCheck size={17} />
           <div>
-            <b>Accesso protetto</b>
-            <span>Prototipo senza autenticazione</span>
+            <b>{session.role}</b>
+            <span>Account demo · sessione locale</span>
           </div>
         </div>
       </aside>
@@ -44,35 +64,52 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         <header className="dash-topbar">
           <button
             className="mobile-menu"
-            aria-label="Apri menu"
+            aria-label={menuOpen ? "Chiudi menu" : "Apri menu"}
+            aria-expanded={menuOpen}
             onClick={() => setMenuOpen(!menuOpen)}
           >
             <Menu size={19} />
           </button>
-          <div className="dash-search">
-            <Search size={16} />
-            <span>Cerca in JANUS</span>
-            <kbd>⌘ K</kbd>
-          </div>
+          <a className="campus-home-link" href="#/">
+            <Home size={16} />
+            <span>Home JANUS</span>
+          </a>
           <div className="top-spacer" />
-          <div className="top-date">MERCOLEDÌ, 11 NOVEMBRE 2026</div>
-          <button className="icon-button" aria-label="Notifiche">
-            <Bell size={18} />
-            <i />
-          </button>
-          <div className="avatar">MD</div>
-        </header>
-        {menuOpen && (
-          <div className="mobile-dash-menu">
-            Dashboard · Studenti · Iscrizioni · Segreteria · Amministrazione ·
-            Didattica
+          <div className="account-context">
+            <b>{session.role}</b>
+            <span>{session.user.email}</span>
           </div>
+          <button
+            className="icon-button"
+            aria-label="Notifiche"
+            aria-expanded={noticeOpen}
+            onClick={() => setNoticeOpen(!noticeOpen)}
+          >
+            <Bell size={18} />
+          </button>
+          <button className="campus-logout" onClick={logout}>
+            <LogOut size={16} />
+            <span>Esci</span>
+          </button>
+        </header>
+        {noticeOpen && (
+          <div className="campus-notice" role="status">
+            Nessuna nuova notifica nella demo locale.
+          </div>
+        )}
+        {menuOpen && (
+          <nav
+            className="mobile-dash-menu"
+            aria-label="Navigazione campus mobile"
+          >
+            {navLinks()}
+          </nav>
         )}
         <div className="dashboard-content">
           {children}
           <footer className="dash-footer">
             <span>JANUS · Ambiente dimostrativo</span>
-            <span>Nessun dato reale · Nessun account autenticato</span>
+            <span>Solo dati sintetici · Accesso demo {session.role}</span>
           </footer>
         </div>
       </section>
