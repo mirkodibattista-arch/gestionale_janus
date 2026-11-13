@@ -1,7 +1,7 @@
 import { dashboardSummary } from "./summary";
 import { useState } from "react";
 import { ArrowUpRight, GraduationCap, ArrowRight } from "lucide-react";
-import { portalHash } from "../../routing/portals";
+import { portalPath } from "../../routing/portals";
 import type { AuthSession } from "../auth/types";
 import { useCampus } from "../campus/CampusProvider";
 import { visibleStudents } from "../campus/permissions";
@@ -10,7 +10,7 @@ import { canAccessModule } from "../../routing/routes";
 export function CampusOverview({ session }: { session: AuthSession }) {
   const { data } = useCampus();
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
-  const destination = portalHash(
+  const destination = portalPath(
     session.role,
     canAccessModule(session.role, "studenti") ? "studenti" : "amministrazione",
   );
@@ -95,7 +95,7 @@ export function CampusOverview({ session }: { session: AuthSession }) {
           subtitle="Iscrizioni per mese · giugno–novembre 2026"
           action={
             canAccessModule(session.role, "statistiche") ? (
-              <a className="cp-link" href="#/azienda/statistiche">
+              <a className="cp-link" href="/campus/statistiche">
                 Analytics <ArrowUpRight size={14} />
               </a>
             ) : undefined
@@ -131,7 +131,7 @@ export function CampusOverview({ session }: { session: AuthSession }) {
               <a
                 className="cp-link"
                 aria-label="Apri registro attività"
-                href="#/azienda/attivita"
+                href="/campus/attivita"
               >
                 <ArrowUpRight size={16} />
               </a>

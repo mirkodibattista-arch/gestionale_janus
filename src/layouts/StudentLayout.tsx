@@ -4,7 +4,7 @@ import { Brand } from "../components/Brand";
 import { useAuth } from "../modules/auth/AuthProvider";
 import { campusModules, type CampusModuleId } from "../modules/registry";
 import { navigate, roleModules } from "../routing/routes";
-import { portalHash } from "../routing/portals";
+import { portalPath } from "../routing/portals";
 import { useCampusTheme } from "./useCampusTheme";
 
 export function StudentLayout({
@@ -24,7 +24,7 @@ export function StudentLayout({
       return (
         <a
           key={id}
-          href={portalHash("Studente", id)}
+          href={portalPath("Studente", id)}
           aria-current={id === activeModule ? "page" : undefined}
           onClick={() => setMenuOpen(false)}
         >
@@ -40,7 +40,7 @@ export function StudentLayout({
       data-portal="studente"
     >
       <header className="student-topbar">
-        <a href={portalHash("Studente")} aria-label="La mia area JANUS">
+        <a href={portalPath("Studente")} aria-label="La mia area JANUS">
           <Brand />
         </a>
         <span className="student-portal-label">PORTALE STUDENTE</span>
@@ -60,7 +60,7 @@ export function StudentLayout({
           className="campus-logout"
           onClick={() => {
             signOut();
-            navigate("#/login");
+            navigate("/login");
           }}
         >
           <LogOut size={16} />

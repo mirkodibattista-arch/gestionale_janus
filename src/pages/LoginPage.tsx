@@ -13,7 +13,7 @@ import { Brand } from "../components/Brand";
 import { useAuth } from "../modules/auth/AuthProvider";
 import { demoAccounts } from "../modules/auth/demoAccounts";
 import { navigate } from "../routing/routes";
-import { portalHash } from "../routing/portals";
+import { portalPath } from "../routing/portals";
 
 export function LoginPage({ notice }: { notice?: string }) {
   const { signIn, demoEnabled } = useAuth();
@@ -30,7 +30,7 @@ export function LoginPage({ notice }: { notice?: string }) {
     setError("");
     try {
       const authenticated = await signIn(email, password);
-      navigate(portalHash(authenticated.role));
+      navigate(portalPath(authenticated.role));
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -48,9 +48,9 @@ export function LoginPage({ notice }: { notice?: string }) {
       <div className="auth-shell">
         <div className="auth-brand">
           <Brand />
-          <span className="auth-back">
-            PORTALE AZIENDALE + PORTALE STUDENTE
-          </span>
+          <a className="auth-back" href="/">
+            ← Torna alla Home JANUS
+          </a>
         </div>
         <div className="auth-grid">
           <section className="auth-intro">

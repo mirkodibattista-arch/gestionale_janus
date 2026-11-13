@@ -6,7 +6,7 @@ const ts = require("typescript");
 const { JSDOM } = require("jsdom");
 const dom = new JSDOM(
   '<!doctype html><html><body><div id="root"></div></body></html>',
-  { url: "http://janus.test/#/login" },
+  { url: "http://janus.test/login" },
 );
 for (const key of [
   "window",
@@ -79,7 +79,7 @@ function load(file) {
 const App = load(path.resolve(__dirname, "../src/App.tsx")).default;
 let root;
 const sleep = () => new Promise((resolve) => setTimeout(resolve, 10));
-async function start(hash = "#/login", keep = false) {
+async function start(hash = "/login", keep = false) {
   if (root) await act(async () => root.unmount());
   if (!keep) window.localStorage.clear();
   window.history.replaceState(null, "", hash);
@@ -91,7 +91,10 @@ async function start(hash = "#/login", keep = false) {
 }
 async function route(hash) {
   await act(async () => {
-    window.location.hash = hash;
+    const { navigate } = load(
+      path.resolve(__dirname, "../src/routing/routes.ts"),
+    );
+    navigate(hash);
     await sleep();
   });
   await act(async () => {
@@ -118,7 +121,7 @@ async function click(selector) {
   });
 }
 async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
-  await route("#/login");
+  await route("/login");
   await input("login-email", email);
   await input("login-password", "CampusDemo!2026");
   await act(async () => {
@@ -131,8 +134,8 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
   });
   assert.equal(document.querySelector(".account-context b")?.textContent, role);
   assert.equal(
-    window.location.hash,
-    `#/${role === "Studente" ? "studente" : "azienda"}/dashboard`,
+    window.location.pathname,
+    role === "Studente" ? "/campus/studente" : "/campus/dashboard",
   );
 }
 (async () => {
@@ -214,7 +217,7 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
       );
       await route(quickLinks[0]);
       assert.ok(document.querySelector(".cp-panel"));
-      await route("#/azienda/dashboard");
+      await route("/campus/dashboard");
     }
     if (["Tutor", "Segreteria"].includes(role))
       assert.ok(
@@ -223,7 +226,10 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
           .textContent.includes("Amministrazione"),
       );
     // Remount alla stessa URL: ripristino della sessione dopo ricaricamento.
-    await start("#/campus/dashboard", true);
+    await start(
+      role === "Studente" ? "/campus/studente" : "/campus/dashboard",
+      true,
+    );
     assert.equal(
       document.querySelector(".account-context b").textContent,
       role,
@@ -240,7 +246,7 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
       assert.ok(document.querySelector(".dashboard-shell"), `${role}: ${link}`);
       assert.equal(document.querySelector(".module-preview"), null);
     }
-    await route(`#/${role === "Studente" ? "azienda" : "studente"}/dashboard`);
+    await route(role === "Studente" ? "/campus/dashboard" : "/campus/studente");
     assert.ok(
       document.querySelector("h1").textContent.includes("Accesso negato"),
     );
@@ -367,11 +373,11 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
     document.querySelectorAll("tbody button").length,
     missingBefore - 1,
   );
-  await route("#/azienda/dashboard");
+  await route("/campus/dashboard");
   assert.equal(
     Number(
       document.querySelector(
-        '.cp-priorities a[href="#/azienda/segreteria"] .cp-priority-count',
+        '.cp-priorities a[href="/campus/segreteria"] .cp-priority-count',
       ).textContent,
     ),
     missingBefore - 1,
@@ -379,7 +385,7 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
   assert.equal(
     Number(
       document.querySelector(
-        '.cp-priorities a[href="#/azienda/amministrazione"] .cp-priority-count',
+        '.cp-priorities a[href="/campus/amministrazione"] .cp-priority-count',
       ).textContent,
     ),
     openBefore - 1,
@@ -419,7 +425,7 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
   // Shared registry across the two portals; no independent student copy.
   await start();
   await login("Admin");
-  await route("#/azienda/studenti");
+  await route("/campus/studenti");
   await fill('input[aria-label="Cerca studenti"]', "ST-001");
   await click(".cp-student-link");
   await click(".cp-stack > .cp-button");
@@ -432,7 +438,7 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
   });
   await click(".campus-logout");
   await login("Studente");
-  await route("#/studente/profilo");
+  await route("/campus/studente/profilo");
   assert.ok(
     document.querySelector(".student-content").textContent.includes("Firenze"),
   );
@@ -441,13 +447,13 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
       .querySelector(".student-content")
       .textContent.includes("Sofia Brina"),
   );
-  await route("#/studente/il-mio-tutor");
+  await route("/campus/studente/il-mio-tutor");
   assert.ok(
     document
       .querySelector(".student-content")
       .textContent.includes("Riccardo Blu"),
   );
-  await route("#/studente/comunicazioni");
+  await route("/campus/studente/comunicazioni");
   assert.equal(document.querySelectorAll(".cp-list > div").length, 2);
   assert.ok(
     !document
@@ -455,12 +461,12 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
       .textContent.includes("Nota interna"),
   );
   await click(".cp-list button");
-  await route("#/studente/dashboard");
+  await route("/campus/studente/dashboard");
   assert.equal(
     document.querySelectorAll(".cp-metrics strong")[3].textContent,
     "1",
   );
-  await route("#/studente/profilo/ST-002");
+  await route("/campus/studente/profilo/ST-002");
   assert.ok(
     document.querySelector("h1").textContent.includes("Pagina non trovata"),
   );
@@ -480,7 +486,7 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
   try {
     await start();
     await login("Studente", second.email);
-    await route("#/studente/profilo");
+    await route("/campus/studente/profilo");
     assert.ok(
       document
         .querySelector(".student-content")
@@ -496,7 +502,7 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
       "janus.demo-auth.v1",
       JSON.stringify({ ...saved, scope: { studentId: "ST-001" } }),
     );
-    await start("#/studente/profilo", true);
+    await start("/campus/studente/profilo", true);
     assert.ok(
       document
         .querySelector(".student-content")

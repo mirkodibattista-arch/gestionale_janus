@@ -1,8 +1,9 @@
-/* Regressione della pagina pubblica (dashboard evolute in verify-auth.cjs): confronta il markup con il commit iniziale.
+/* Regressione dei campi e stati del form pubblico (dashboard evolute in verify-auth.cjs): confronta il markup con il commit iniziale.
  * Usa render statico e un client Supabase fittizio: nessun servizio esterno.
  * Non sostituisce una verifica interattiva nel browser.
  */
 const assert = require("node:assert/strict");
+const { JSDOM } = require("jsdom");
 const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -131,11 +132,11 @@ for (const [step, busy, error, success] of [
 ]) {
   const state = ["form", step, form, busy, error, success];
   assertMarkup(
-    render(CurrentOrientation, state).replace(
-      "Accedi al campus",
-      "Anteprima gestionale",
-    ),
-    render(oldApp.default, state),
+    JSDOM.fragment(render(CurrentOrientation, state)).querySelector(
+      ".form-section",
+    ).outerHTML,
+    JSDOM.fragment(render(oldApp.default, state)).querySelector(".form-section")
+      .outerHTML,
     `Public form: step ${step}, busy=${busy}, error=${error}, success=${success}`,
   );
   checks += 1;

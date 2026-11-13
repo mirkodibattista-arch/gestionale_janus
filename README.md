@@ -1,6 +1,6 @@
 # JANUS Digital Campus
 
-Gestionale React + TypeScript + Vite, in modalità dimostrativa locale. Lavora sul repository JANUS esistente; nessun nuovo repository, nessuna pubblicazione e nessun collegamento al database in questa versione.
+Un’unica applicazione React + TypeScript + Vite: Home pubblica con form di orientamento e integrazione Supabase esistente, più Digital Campus in modalità demo per personale e studenti. Nessun nuovo repository o deployment in questa revisione.
 
 ## Aprire su Windows 11
 
@@ -8,21 +8,30 @@ Dalla cartella del progetto che contiene `package.json`, apri PowerShell:
 
 ```powershell
 git fetch origin
-git switch feat/janus-digital-campus-v1
+git switch feat/janus-public-home-login
+git pull --ff-only
 npm.cmd install
 npm.cmd run dev
 ```
 
-Apri nel browser l'indirizzo **Local** scritto da Vite (normalmente `http://localhost:5173/`). Il terminale deve restare aperto; `Ctrl+C` arresta l'app. Non aprire `index.html` facendo doppio clic. Non serve avviare PostgreSQL o configurare `.env.local`.
+Apri nel browser l'indirizzo **Local** scritto da Vite (normalmente `http://localhost:5173/`). Il terminale deve restare aperto; `Ctrl+C` arresta l'app. Non aprire `index.html` facendo doppio clic. Non serve avviare PostgreSQL per i portali demo. Per inviare il form pubblico servono le variabili Supabase già previste in `.env.example` e configurate nell’ambiente esistente. Conservare tali impostazioni; senza configurazione valida il form mostra un errore, non una conferma simulata.
 
 Se Git segnala modifiche locali, conservale prima di cambiare branch. Non usare comandi di ripristino distruttivi. Per scaricare aggiornamenti successivi sullo stesso branch: `git pull --ff-only`.
+
+Il sorgente della funzione ammette le origini locali sulla porta **5173**; `localhost:5174` e i domini Pages non sono nella lista CORS del repository. La funzione pubblicata potrebbe differire: l’invio reale da queste origini resta da verificare. Nessuna modifica alle origini è stata effettuata.
+
+## Home pubblica e login
+
+La pagina iniziale resta la Home pubblica originale con form. Il pulsante **SEI GIÀ ISCRITTO? ACCEDI AL DIGITAL CAMPUS** apre `/login`; anche il personale usa lo stesso accesso. `/orientamento` riusa lo stesso modulo. Un account già autenticato può tornare alla Home senza essere reindirizzato al campus.
+
+La decisione corrente è [ADR-002](docs/architecture/ADR-002-public-home.md). Le route del form e del login si aggiungono ai due portali di ADR-001.
 
 ## Architettura permanente: due portali
 
 Un’unica applicazione JANUS, un solo login e un’unica anagrafica condivisa. L’account determina automaticamente il portale:
 
-- **Portale Aziendale** (`#/azienda/dashboard`): Admin, Supervisore, Segreteria, Didattica, Amministrazione e Tutor. Audit è una modalità aziendale in sola lettura.
-- **Portale Studente** (`#/studente/dashboard`): interfaccia dedicata a profilo, piano, materie, calendario, tutor, documenti, esami, avanzamento e comunicazioni personali.
+- **Portale Aziendale** (`/campus/dashboard`): Admin, Supervisore, Segreteria, Didattica, Amministrazione e Tutor. Audit è una modalità aziendale in sola lettura.
+- **Portale Studente** (`/campus/studente`): interfaccia dedicata a profilo, piano, materie, calendario, tutor, documenti, esami, avanzamento e comunicazioni personali.
 
 Le vecchie route `#/campus/...` restano compatibili e portano al portale autorizzato. Uno studente non può aprire il portale aziendale; il personale non può usare il portale Studente come impersonificazione.
 
@@ -68,16 +77,15 @@ Le operazioni sui dati durano **fino al ricaricamento della pagina** e sono cond
 
 La fase A è implementata insieme a un primo flusso operativo demo dei moduli successivi. Non è la versione completa di produzione: agenda, piani di studio, materie ed esami sono consultabili con contenuti sintetici; caricamento documenti, emissione certificati, gestione lezioni e valutazioni, contratti completi, notifiche e recupero password reale sono ancora da implementare. Nessuna chiamata WhatsApp, telefonata, email o videochiamata viene effettuata.
 
-Il form pubblico precedente resta nel sorgente `src/modules/orientation`, ma è escluso dalle route attive della demo per evitare invii al backend. I file Supabase esistenti non sono modificati. L'analisi dello schema e l'integrazione reale richiedono una fase separata.
+Il form pubblico è attivo su `/` e `/orientamento` e conserva l’invio esistente tramite la funzione `richiesta-contatto`. La richiesta non è un’iscrizione confermata e non crea un account. Hook, payload e file Supabase sono invariati. I test simulano le risposte senza inviare dati al backend.
 
-La revisione corrente e il confronto di tutti i branch sono in [docs/V1_REVIEW.md](docs/V1_REVIEW.md).
+Per questa integrazione vedere [docs/PUBLIC_HOME_REVIEW.md](docs/PUBLIC_HOME_REVIEW.md); il consolidamento precedente è documentato in [docs/V1_REVIEW.md](docs/V1_REVIEW.md).
 
 ## Verifiche
 
 ```powershell
 npm.cmd run build
-npm.cmd run verify:auth
-npm.cmd run verify:auth-ui
+npm.cmd test
 ```
 
 Build TypeScript rigoroso e Vite; test React/jsdom per otto account, tutte le route esposte, accessi negati, sessione/scadenza/logout, flussi tra moduli, sola lettura Audit, tema e assenza di chiamate backend. Le prove jsdom non sostituiscono i test su browser o Windows.
@@ -93,4 +101,4 @@ Le prove browser di questa revisione sono predisposte per 1440px e 390px, ma qui
 
 Per il collegamento futuro a Cloudflare, vedi [docs/CLOUDFLARE_PAGES.md](docs/CLOUDFLARE_PAGES.md). Nessun comando di pubblicazione è incluso.
 
-Vedi [docs/CAMPUS_IMPLEMENTATION.md](docs/CAMPUS_IMPLEMENTATION.md) per architettura, perimetro e verifiche browser. Il vecchio comando `verify:refactor` verifica uno snapshot storico del prototipo e non è un criterio di accettazione per il nuovo campus.
+Vedi [docs/CAMPUS_IMPLEMENTATION.md](docs/CAMPUS_IMPLEMENTATION.md) per architettura, perimetro e verifiche browser. `verify:refactor` confronta i sei stati del solo form con la baseline; `verify:public-ui` prova il flusso pubblico con risposte simulate. Entrambi sono inclusi in `npm test`.

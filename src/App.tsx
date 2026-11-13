@@ -1,6 +1,8 @@
+import { OrientationPage } from "./pages/OrientationPage";
+import { useOrientationForm } from "./modules/orientation/hooks/useOrientationForm";
 import { useEffect } from "react";
 import { StudentPortalPage } from "./modules/student-portal/StudentPortalPage";
-import { portalForRole, portalHash } from "./routing/portals";
+import { portalForRole, portalPath } from "./routing/portals";
 import { AuthProvider, useAuth } from "./modules/auth/AuthProvider";
 import { CampusProvider } from "./modules/campus/CampusProvider";
 import { CampusPage } from "./pages/CampusPage";
@@ -9,20 +11,29 @@ import { AccessDeniedPage } from "./pages/AccessDeniedPage";
 import { LoginPage } from "./pages/LoginPage";
 
 import { canAccessModule, isModuleId, navigate } from "./routing/routes";
-import { useHashRoute } from "./routing/useHashRoute";
+import { useAppRoute } from "./routing/useAppRoute";
 
-function PortalRedirect({ hash }: { hash: string }) {
+function PortalRedirect({ to }: { to: string }) {
   useEffect(() => {
-    navigate(hash);
-  }, [hash]);
+    navigate(to, { replace: true });
+  }, [to]);
   return null;
 }
 function AppRoutes() {
-  const route = useHashRoute();
+  const route = useAppRoute();
   const { session } = useAuth();
-  if (route.page === "home" || route.page === "login")
+  const orientationForm = useOrientationForm();
+  if (route.page === "home" || route.page === "orientation")
+    return (
+      <OrientationPage
+        onDashboard={() => navigate("/login")}
+        controller={orientationForm}
+        formOnly={route.page === "orientation"}
+      />
+    );
+  if (route.page === "login")
     return session ? (
-      <PortalRedirect hash={portalHash(session.role)} />
+      <PortalRedirect to={portalPath(session.role)} />
     ) : (
       <LoginPage />
     );
@@ -38,7 +49,9 @@ function AppRoutes() {
   if (route.portal && route.portal !== portalForRole(session.role))
     return <AccessDeniedPage />;
   if (!route.portal)
-    return <PortalRedirect hash={portalHash(session.role, route.moduleId)} />;
+    return <PortalRedirect to={portalPath(session.role, route.moduleId)} />;
+  if (window.location.hash.startsWith("#/"))
+    return <PortalRedirect to={portalPath(session.role, route.moduleId)} />;
   if (session.role === "Studente")
     return (
       <StudentPortalPage

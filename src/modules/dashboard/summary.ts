@@ -11,7 +11,7 @@ import type { CampusModuleId } from "../registry";
 import { visibleStudents } from "../campus/permissions";
 import { money } from "../campus/ui";
 import { canAccessModule } from "../../routing/routes";
-import { portalHash } from "../../routing/portals";
+import { portalPath } from "../../routing/portals";
 
 export type DashboardMetric = readonly [
   string,
@@ -298,6 +298,6 @@ export function dashboardSummary(data: CampusData, session: AuthSession) {
     metrics,
     actions: actions
       .filter((a) => canAccessModule(session.role, a.moduleId))
-      .map((a) => ({ ...a, href: portalHash(session.role, a.moduleId) })),
+      .map((a) => ({ ...a, href: portalPath(session.role, a.moduleId) })),
   };
 }

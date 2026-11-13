@@ -5,7 +5,7 @@ import { Brand } from "../components/Brand";
 import { useAuth } from "../modules/auth/AuthProvider";
 import type { AuthSession } from "../modules/auth/types";
 import { campusModules, type CampusModuleId } from "../modules/registry";
-import { portalHash } from "../routing/portals";
+import { portalPath } from "../routing/portals";
 import { moduleLabel, navigate, roleModules } from "../routing/routes";
 
 type DashboardLayoutProps = {
@@ -25,7 +25,7 @@ export function DashboardLayout({
   const links = roleModules[session.role];
   const logout = () => {
     signOut();
-    navigate("#/login");
+    navigate("/login");
   };
   const navLinks = () =>
     links.map((id) => {
@@ -34,7 +34,7 @@ export function DashboardLayout({
         <a
           key={id}
           className={`dash-nav-item${id === activeModule ? " active" : ""}`}
-          href={portalHash(session.role, id)}
+          href={portalPath(session.role, id)}
           onClick={() => setMenuOpen(false)}
           aria-current={id === activeModule ? "page" : undefined}
         >
@@ -49,7 +49,7 @@ export function DashboardLayout({
       data-portal="azienda"
     >
       <aside className="dash-sidebar">
-        <a href="#/" aria-label="Home JANUS">
+        <a href="/" aria-label="Home JANUS">
           <Brand />
         </a>
         <div className="demo-pill">
@@ -81,7 +81,7 @@ export function DashboardLayout({
           >
             <Menu size={19} />
           </button>
-          <a className="campus-home-link" href="#/">
+          <a className="campus-home-link" href="/">
             <Home size={16} />
             <span>Home JANUS</span>
           </a>

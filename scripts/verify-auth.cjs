@@ -140,6 +140,25 @@ const auth = createDemoAuthService(storage, () => now);
   for (const id of ["materie", "comunicazioni", "avanzamento"])
     assert.ok(canAccessModule("Studente", id));
   assert.equal(parseRoute("#richiesta").page, "home");
+  assert.deepEqual(parseRoute("/"), { page: "home" });
+  assert.deepEqual(parseRoute("/orientamento"), { page: "orientation" });
+  assert.deepEqual(parseRoute("/login"), { page: "login" });
+  assert.deepEqual(parseRoute("/campus/dashboard"), {
+    page: "campus",
+    portal: "azienda",
+    moduleId: "dashboard",
+  });
+  assert.deepEqual(parseRoute("/campus/studente"), {
+    page: "campus",
+    portal: "studente",
+    moduleId: "dashboard",
+  });
+  assert.deepEqual(parseRoute("/campus/studente/profilo"), {
+    page: "campus",
+    portal: "studente",
+    moduleId: "profilo",
+  });
+  assert.equal(parseRoute("/campus/studente/profilo/ST-002").page, "not-found");
   console.log(
     "Auth demo: 8 account, associazioni ruolo, sessione/expiry/logout, storage corrotto/bloccato e accessi consentiti/negati verificati.",
   );

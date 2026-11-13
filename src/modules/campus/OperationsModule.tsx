@@ -226,7 +226,7 @@ export function OperationsModule({
                     </div>
                   ))}
               </div>
-              <a className="cp-link" href="#/azienda/calendario">
+              <a className="cp-link" href="/campus/calendario">
                 Consulta calendario →
               </a>
             </Panel>

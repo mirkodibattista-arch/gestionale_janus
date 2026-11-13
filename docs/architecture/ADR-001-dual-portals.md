@@ -1,3 +1,5 @@
+> Aggiornamento: [ADR-002](ADR-002-public-home.md) ripristina la Home pubblica e introduce il routing per percorsi. I riferimenti hash e l’esclusione temporanea del form nelle versioni precedenti sono storici.
+
 # ADR-001 — Un’applicazione JANUS, due portali
 
 Stato: **Accettata, requisito permanente**. Decisione del committente: 13 novembre 2026.

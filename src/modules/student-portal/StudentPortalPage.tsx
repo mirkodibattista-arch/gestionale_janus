@@ -13,7 +13,7 @@ import { useCampus } from "../campus/CampusProvider";
 import { visibleStudents } from "../campus/permissions";
 import { Badge, Panel, Progress, dateLabel } from "../campus/ui";
 import { StudentLayout } from "../../layouts/StudentLayout";
-import { portalHash } from "../../routing/portals";
+import { portalPath } from "../../routing/portals";
 import { learningForStudent } from "../campus/learning";
 
 export function StudentPortalPage({
@@ -98,7 +98,7 @@ export function StudentPortalPage({
             </p>
             <a
               className="cp-button primary"
-              href={portalHash("Studente", "piano-studi")}
+              href={portalPath("Studente", "piano-studi")}
             >
               Apri il tuo piano <ArrowRight size={16} />
             </a>
@@ -134,7 +134,7 @@ export function StudentPortalPage({
               <p>{tutor?.subjects.join(" · ")}</p>
               <a
                 className="cp-link"
-                href={portalHash("Studente", "il-mio-tutor")}
+                href={portalPath("Studente", "il-mio-tutor")}
               >
                 Consulta il tutor →
               </a>
@@ -144,7 +144,7 @@ export function StudentPortalPage({
             <p>{unread} comunicazioni demo da leggere.</p>
             <a
               className="cp-link"
-              href={portalHash("Studente", "comunicazioni")}
+              href={portalPath("Studente", "comunicazioni")}
             >
               Apri comunicazioni →
             </a>

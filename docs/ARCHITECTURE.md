@@ -1,3 +1,5 @@
+> Integrazione corrente: [ADR-002 — Home pubblica e login](architecture/ADR-002-public-home.md). La Home resta pubblica con form; i portali adottano percorsi reali e conservano compatibilità con gli hash storici.
+
 > Requisito permanente aggiornato il 13 novembre 2026: [ADR-001 — Un’applicazione, due portali](architecture/ADR-001-dual-portals.md). Questa decisione prevale sui riferimenti storici a un’unica interfaccia dashboard.
 
 # Architettura JANUS Digital Campus
