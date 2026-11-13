@@ -13,7 +13,8 @@ import {
 import { Brand } from "../components/Brand";
 import { useAuth } from "../modules/auth/AuthProvider";
 import { demoAccounts } from "../modules/auth/demoAccounts";
-import { dashboardHash, navigate } from "../routing/routes";
+import { navigate } from "../routing/routes";
+import { portalHash } from "../routing/portals";
 
 export function LoginPage({ notice }: { notice?: string }) {
   const { signIn, demoEnabled } = useAuth();
@@ -29,8 +30,8 @@ export function LoginPage({ notice }: { notice?: string }) {
     setBusy(true);
     setError("");
     try {
-      await signIn(email, password);
-      navigate(dashboardHash);
+      const authenticated = await signIn(email, password);
+      navigate(portalHash(authenticated.role));
     } catch (cause) {
       setError(
         cause instanceof Error

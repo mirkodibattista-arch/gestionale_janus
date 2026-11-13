@@ -62,8 +62,13 @@ const auth = createDemoAuthService(storage, () => now);
     for (const id of roleModules[account.role])
       assert.ok(canAccessModule(account.role, id));
     // Un campo ruolo aggiunto al JSON non cambia il ruolo risolto dall'account.
-    raw = JSON.stringify({ ...JSON.parse(raw), role: "Admin" });
+    raw = JSON.stringify({
+      ...JSON.parse(raw),
+      role: "Admin",
+      scope: { studentId: "ST-999", tutorId: "TU-999" },
+    });
     assert.equal(auth.getSession().role, account.role);
+    assert.deepEqual(auth.getSession().scope, account.scope);
     auth.signOut();
     assert.equal(auth.getSession(), null);
   }
@@ -129,6 +134,11 @@ const auth = createDemoAuthService(storage, () => now);
     "amministrazione",
   );
   assert.equal(parseRoute("#/campus/a/b").page, "not-found");
+  assert.equal(parseRoute("#/studente/profilo").portal, "studente");
+  assert.equal(parseRoute("#/azienda/dashboard").portal, "azienda");
+  assert.equal(parseRoute("#/studente/profilo/ST-002").page, "not-found");
+  for (const id of ["materie", "comunicazioni", "avanzamento"])
+    assert.ok(canAccessModule("Studente", id));
   assert.equal(parseRoute("#richiesta").page, "home");
   console.log(
     "Auth demo: 8 account, associazioni ruolo, sessione/expiry/logout, storage corrotto/bloccato e accessi consentiti/negati verificati.",

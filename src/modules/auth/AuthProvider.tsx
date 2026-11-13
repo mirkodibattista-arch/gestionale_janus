@@ -18,7 +18,7 @@ const service = createDemoAuthService({
 type AuthContextValue = {
   session: AuthSession | null;
   demoEnabled: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<AuthSession>;
   signOut: () => void;
 };
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
     const authenticated = await service.signIn(email, password);
     setSession(authenticated);
+    return authenticated;
   };
   const signOut = () => {
     service.signOut();

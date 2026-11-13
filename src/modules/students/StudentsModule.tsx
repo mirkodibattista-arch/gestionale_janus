@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { AuthSession } from "../auth/types";
 import type { Student, StudentDetails } from "../campus/types";
+import { learningForStudent } from "../campus/learning";
 import { StudentForm } from "./StudentForm";
 import { useCampus } from "../campus/CampusProvider";
 import {
@@ -29,7 +30,7 @@ export function StudentsModule({
   const { data, mutate } = useCampus();
   const students = visibleStudents(data, session);
   const [selected, setSelected] = useState<string | null>(
-    profile ? "ST-001" : null,
+    profile ? (students[0]?.id ?? null) : null,
   );
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -42,8 +43,9 @@ export function StudentsModule({
   const filtered = students
     .filter(
       (s) =>
-        [s.name, s.id, s.email, s.city].some(value => value.toLowerCase().includes(query.trim().toLowerCase())) &&
-        filterKeys.every((k) => !filters[k] || s[k] === filters[k]),
+        [s.name, s.id, s.email, s.city].some((value) =>
+          value.toLowerCase().includes(query.trim().toLowerCase()),
+        ) && filterKeys.every((k) => !filters[k] || s[k] === filters[k]),
     )
     .sort((a, b) => (ascending ? 1 : -1) * a.name.localeCompare(b.name));
   const pages = Math.max(1, Math.ceil(filtered.length / 8));
@@ -73,9 +75,18 @@ export function StudentsModule({
   if (student)
     return (
       <div className="cp-stack">
-        {!profile && <button className="cp-link" onClick={() => { setSelected(null); setEditing(false); setMessage(""); }}>
-          <ArrowLeft size={16} /> Torna agli studenti
-        </button>}
+        {!profile && (
+          <button
+            className="cp-link"
+            onClick={() => {
+              setSelected(null);
+              setEditing(false);
+              setMessage("");
+            }}
+          >
+            <ArrowLeft size={16} /> Torna agli studenti
+          </button>
+        )}
         <div className="cp-profile-head">
           <div className="cp-avatar large">
             {student.name
@@ -92,14 +103,34 @@ export function StudentsModule({
           <Badge>{student.status}</Badge>
         </div>
         {message && <p role="status">{message}</p>}
-        {canManageStudents(session.role) && <button className="cp-button" onClick={() => setEditing(!editing)}>Modifica studente</button>}
-        {editing && canManageStudents(session.role) && <Panel title="Modifica studente dimostrativo" subtitle="Le modifiche durano fino al ricaricamento.">
-          <StudentForm student={student} onCancel={() => setEditing(false)} onSave={(details) => {
-            const ok = mutate({ type: "update-student", id: student.id, details });
-            if (ok) { setEditing(false); setMessage("Anagrafica demo aggiornata."); }
-            return ok;
-          }} />
-        </Panel>}
+        {canManageStudents(session.role) && (
+          <button className="cp-button" onClick={() => setEditing(!editing)}>
+            Modifica studente
+          </button>
+        )}
+        {editing && canManageStudents(session.role) && (
+          <Panel
+            title="Modifica studente dimostrativo"
+            subtitle="Le modifiche durano fino al ricaricamento."
+          >
+            <StudentForm
+              student={student}
+              onCancel={() => setEditing(false)}
+              onSave={(details) => {
+                const ok = mutate({
+                  type: "update-student",
+                  id: student.id,
+                  details,
+                });
+                if (ok) {
+                  setEditing(false);
+                  setMessage("Anagrafica demo aggiornata.");
+                }
+                return ok;
+              }}
+            />
+          </Panel>
+        )}
         <div className="cp-two">
           <Panel title="Anagrafica e contatti">
             <dl>
@@ -152,12 +183,12 @@ export function StudentsModule({
               </label>
             )}
             <div className="cp-list">
-              {["Matematica", "Italiano", "Inglese"].map((m, i) => (
-                <div key={m}>
+              {learningForStudent(data, student).subjects.map((subject) => (
+                <div key={subject.id}>
                   <span>
-                    {m} · recupero {i + 2}° anno
+                    {subject.name} · {subject.year}
                   </span>
-                  <Badge>{i < 2 ? "In corso" : "Da iniziare"}</Badge>
+                  <Progress value={subject.progress} />
                 </div>
               ))}
             </div>
@@ -196,6 +227,23 @@ export function StudentsModule({
               )}
             </Panel>
           )}
+          <Panel title="Comunicazioni allo studente">
+            <div className="cp-list">
+              {data.communications
+                .filter(
+                  (m) =>
+                    m.studentId === student.id && m.audience === "studente",
+                )
+                .map((m) => (
+                  <div key={m.id}>
+                    <span>
+                      <b>{m.title}</b>
+                      <small>{m.body}</small>
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </Panel>
           <Panel title="Storico attività e comunicazioni">
             <div className="cp-list">
               {data.activities
@@ -268,7 +316,18 @@ export function StudentsModule({
           </label>
         ))}
       </div>
-      {(query || Object.values(filters).some(Boolean)) && <button className="cp-button" onClick={() => { setQuery(""); setFilters({}); setPage(1); }}>Azzera ricerca e filtri</button>}
+      {(query || Object.values(filters).some(Boolean)) && (
+        <button
+          className="cp-button"
+          onClick={() => {
+            setQuery("");
+            setFilters({});
+            setPage(1);
+          }}
+        >
+          Azzera ricerca e filtri
+        </button>
+      )}
       <Panel
         title="Anagrafica condivisa"
         subtitle={`${filtered.length} studenti demo · ${session.role === "Audit" ? "Perimetro autorizzato: 6 studenti" : "Dati coerenti tra i reparti"}`}

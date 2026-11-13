@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import type { AuthSession } from "../auth/types";
 import type { CampusModuleId } from "../registry";
+import { learningForStudent } from "./learning";
 import { useCampus } from "./CampusProvider";
 import {
   canAssign,
@@ -225,7 +226,7 @@ export function OperationsModule({
                     </div>
                   ))}
               </div>
-              <a className="cp-link" href="#/campus/calendario">
+              <a className="cp-link" href="#/azienda/calendario">
                 Consulta calendario →
               </a>
             </Panel>
@@ -305,22 +306,22 @@ export function OperationsModule({
         subtitle="Programmazione sintetica collegata agli studenti visibili"
       >
         <div className="cp-list">
-          {students.slice(0, 8).map((s, i) => (
-            <div key={s.id}>
-              <span className="cp-calendar-day">
-                <b>{16 + i}</b>NOV
-              </span>
-              <span>
-                <b>{s.name}</b>
-                <small>
-                  Ore {14 + (i % 3)}:30 ·{" "}
-                  {data.tutors.find((t) => t.id === s.tutorId)?.subjects[0]} ·
-                  Lezione online
-                </small>
-              </span>
-              <Badge>Programmata</Badge>
-            </div>
-          ))}
+          {students.flatMap((s) =>
+            learningForStudent(data, s).lessons.map((lesson) => (
+              <div key={lesson.id}>
+                <span>
+                  <b>
+                    {s.name} · {lesson.subject}
+                  </b>
+                  <small>
+                    {dateLabel(lesson.date)} · {lesson.time} ·{" "}
+                    {lesson.tutorName}
+                  </small>
+                </span>
+                <Badge>Programmata · demo</Badge>
+              </div>
+            )),
+          )}
         </div>
       </Panel>
     );
@@ -356,7 +357,11 @@ export function OperationsModule({
                   <td>{s.name}</td>
                   <td>
                     {s.course}
-                    <small>Matematica · Italiano · Inglese</small>
+                    <small>
+                      {learningForStudent(data, s)
+                        .subjects.map((subject) => subject.name)
+                        .join(" · ")}
+                    </small>
                   </td>
                   <td>
                     {canAssign(session.role) ? (

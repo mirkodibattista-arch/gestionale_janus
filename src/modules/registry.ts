@@ -37,6 +37,9 @@ const entries = [
   ["il-mio-tutor", "Il mio tutor", GraduationCap],
   ["contratti", "Contratti", FileText],
   ["pagamenti", "Pagamenti", WalletCards],
+  ["materie", "Materie", BookOpen],
+  ["avanzamento", "Avanzamento", ChartNoAxesCombined],
+  ["comunicazioni", "Comunicazioni", History],
   ["scadenze", "Scadenze", CalendarDays],
 ] as const;
 export type CampusModuleId = (typeof entries)[number][0];
