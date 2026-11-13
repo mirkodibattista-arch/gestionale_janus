@@ -164,3 +164,134 @@ for (const viewport of [
     expect(submissions).toBe(0);
   });
 }
+
+
+// Matrice visuale completa: ogni screenshot è una cattura reale del browser
+// Chromium, salvata tra gli output del test e conservata come artifact CI.
+const visualAccounts = [
+  { role: "Admin", email: "admin@janus-demo.test", portal: "azienda" },
+  { role: "Supervisore", email: "supervisore@janus-demo.test", portal: "azienda" },
+  { role: "Segreteria", email: "segreteria@janus-demo.test", portal: "azienda" },
+  { role: "Didattica", email: "didattica@janus-demo.test", portal: "azienda" },
+  { role: "Amministrazione", email: "amministrazione@janus-demo.test", portal: "azienda" },
+  { role: "Tutor", email: "tutor@janus-demo.test", portal: "azienda" },
+  { role: "Studente", email: "studente@janus-demo.test", portal: "studente" },
+  { role: "Audit", email: "audit@janus-demo.test", portal: "azienda" },
+] as const;
+
+for (const viewport of [
+  { width: 1440, height: 960 },
+  { width: 390, height: 844 },
+]) {
+  test(`home, form e login con screenshot a ${viewport.width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize(viewport);
+    const pageErrors: string[] = [];
+    const consoleErrors: string[] = [];
+    const externalRequests: string[] = [];
+    const failedRequests: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text());
+    });
+    page.on("requestfailed", (request) => {
+      if (new URL(request.url()).hostname === "127.0.0.1")
+        failedRequests.push(`${request.url()} — ${request.failure()?.errorText ?? "errore"}`);
+    });
+    await page.route("**/*", async (route) => {
+      const url = new URL(route.request().url());
+      if (url.hostname !== "127.0.0.1") {
+        externalRequests.push(route.request().url());
+        await route.abort();
+        return;
+      }
+      await route.continue();
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".hero-section")).toBeVisible();
+    await expect(page.locator("#nome")).toBeVisible();
+    await expect(page.getByRole("link", { name: "SEI GIÀ ISCRITTO? ACCEDI AL DIGITAL CAMPUS" })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("home.png"), fullPage: true });
+
+    await page.goto("/orientamento");
+    await expect(page.locator(".form-section")).toHaveCount(1);
+    await expect(page.locator("#nome")).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("form-orientamento.png"), fullPage: true });
+
+    await page.goto("/login");
+    await expect(page.locator("#login-email")).toBeVisible();
+    await expect(page.locator("#login-password")).toBeVisible();
+    await expect(page.locator(".auth-card form button[type=submit]")).toBeEnabled();
+    await page.screenshot({ path: testInfo.outputPath("login.png"), fullPage: true });
+
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(pageErrors).toEqual([]);
+    expect(consoleErrors).toEqual([]);
+    expect(failedRequests).toEqual([]);
+    expect(externalRequests).toEqual([]);
+  });
+
+  for (const account of visualAccounts) {
+    test(`dashboard ${account.role} e logout a ${viewport.width}px`, async ({ page }, testInfo) => {
+      await page.setViewportSize(viewport);
+      const pageErrors: string[] = [];
+      const consoleErrors: string[] = [];
+      const externalRequests: string[] = [];
+      const failedRequests: string[] = [];
+      page.on("pageerror", (error) => pageErrors.push(error.message));
+      page.on("console", (message) => {
+        if (message.type() === "error") consoleErrors.push(message.text());
+      });
+      page.on("requestfailed", (request) => {
+        if (new URL(request.url()).hostname === "127.0.0.1")
+          failedRequests.push(`${request.url()} — ${request.failure()?.errorText ?? "errore"}`);
+      });
+      await page.route("**/*", async (route) => {
+        const url = new URL(route.request().url());
+        if (url.hostname !== "127.0.0.1") {
+          externalRequests.push(route.request().url());
+          await route.abort();
+          return;
+        }
+        await route.continue();
+      });
+
+      await page.goto("/login");
+      await page.locator("#login-email").fill(account.email);
+      await page.locator("#login-password").fill("CampusDemo!2026");
+      await page.locator(".auth-card form").getByRole("button", { name: /Accedi/ }).click();
+      await expect(page.locator(".account-context b")).toHaveText(account.role);
+      await expect(page.locator(`[data-portal="${account.portal}"]`)).toBeVisible();
+      await expect(page.locator(".dashboard-shell")).toBeVisible();
+      await page.screenshot({ path: testInfo.outputPath(`${account.role.toLowerCase()}-dashboard.png`), fullPage: true });
+
+      if (viewport.width < 760) {
+        const menuButton = page.getByRole("button", { name: "Apri menu" });
+        await expect(menuButton).toBeVisible();
+        await menuButton.click();
+        const menu = page.locator(".mobile-dash-menu");
+        await expect(menu).toBeVisible();
+        await expect(menu.locator("a").first()).toBeVisible();
+        await page.screenshot({ path: testInfo.outputPath(`${account.role.toLowerCase()}-menu-mobile.png`), fullPage: true });
+        await menu.locator("a").first().click();
+        await expect(page.locator(".mobile-dash-menu")).toHaveCount(0);
+      } else {
+        await expect(page.locator(".dash-sidebar")).toBeVisible();
+        await expect(page.locator(".dash-nav-item").first()).toBeVisible();
+      }
+
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      const logout = page.locator(".campus-logout");
+      await expect(logout).toBeVisible();
+      await logout.click();
+      await expect(page).toHaveURL(/\/login$/);
+      await expect(page.locator("#login-email")).toBeVisible();
+      await page.screenshot({ path: testInfo.outputPath(`${account.role.toLowerCase()}-logout.png`), fullPage: true });
+
+      expect(pageErrors).toEqual([]);
+      expect(consoleErrors).toEqual([]);
+      expect(failedRequests).toEqual([]);
+      expect(externalRequests).toEqual([]);
+    });
+  }
+}
