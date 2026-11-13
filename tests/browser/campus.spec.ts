@@ -275,6 +275,9 @@ for (const viewport of [
         await page.screenshot({ path: testInfo.outputPath(`${account.role.toLowerCase()}-menu-mobile.png`), fullPage: true });
         await menu.locator("a").first().click();
         await expect(page.locator(".mobile-dash-menu")).toHaveCount(0);
+      } else if (account.portal === "studente") {
+        await expect(page.locator(".student-navigation")).toBeVisible();
+        await expect(page.locator(".student-navigation a").first()).toBeVisible();
       } else {
         await expect(page.locator(".dash-sidebar")).toBeVisible();
         await expect(page.locator(".dash-nav-item").first()).toBeVisible();
