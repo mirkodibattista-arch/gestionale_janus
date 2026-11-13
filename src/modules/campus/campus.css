@@ -510,7 +510,7 @@
 }
 .cp-table-scroll th:nth-child(4),
 .cp-table-scroll td:nth-child(4) {
-  min-width: 160px;
+  min-width: 200px;
 }
 .cp-table-scroll th:nth-child(5),
 .cp-table-scroll td:nth-child(5) {
