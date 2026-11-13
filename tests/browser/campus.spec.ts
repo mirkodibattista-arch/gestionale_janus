@@ -292,6 +292,19 @@ for (const viewport of [
           await expect.poll(() => table.evaluate((element) => element.scrollLeft))
             .toBeGreaterThan(0);
           expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+          const progressLabels = table.locator("tbody td:nth-child(4) .cp-progress span");
+          const statusBadges = table.locator("tbody td:nth-child(5) .cp-badge");
+          const progressCount = await progressLabels.count();
+          expect(await statusBadges.count()).toBe(progressCount);
+          for (let row = 0; row < progressCount; row++) {
+            const progressRight = await progressLabels.nth(row).evaluate((element) =>
+              element.getBoundingClientRect().right,
+            );
+            const statusLeft = await statusBadges.nth(row).evaluate((element) =>
+              element.getBoundingClientRect().left,
+            );
+            expect(progressRight).toBeLessThanOrEqual(statusLeft);
+          }
           await table.screenshot({
             path: testInfo.outputPath(`${account.role.toLowerCase()}-dashboard-table-scroll.png`),
             animations: "disabled",
