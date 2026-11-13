@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from "react";
-import { Bell, Home, LogOut, Menu, ShieldCheck } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Bell, Home, LogOut, Menu, ShieldCheck, Sun, Moon } from "lucide-react";
 import { Brand } from "../components/Brand";
 import { useAuth } from "../modules/auth/AuthProvider";
 import type { AuthSession } from "../modules/auth/types";
@@ -16,6 +16,20 @@ export function DashboardLayout({
   session,
   activeModule = "dashboard",
 }: DashboardLayoutProps) {
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("janus.theme") ?? "dark";
+    } catch {
+      return "dark";
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("janus.theme", theme);
+    } catch {
+      /* optional preference */
+    }
+  }, [theme]);
   const { signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
@@ -40,7 +54,7 @@ export function DashboardLayout({
       );
     });
   return (
-    <main className="dashboard-shell">
+    <main className={`dashboard-shell campus-app ${theme}`} data-theme={theme}>
       <aside className="dash-sidebar">
         <a href="#/" aria-label="Home JANUS">
           <Brand />
@@ -75,6 +89,13 @@ export function DashboardLayout({
             <span>Home JANUS</span>
           </a>
           <div className="top-spacer" />
+          <button
+            className="icon-button"
+            aria-label="Cambia tema"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           <div className="account-context">
             <b>{session.role}</b>
             <span>{session.user.email}</span>

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Brand } from "../components/Brand";
 import { useAuth } from "../modules/auth/AuthProvider";
-import { demoAccounts, DEMO_PASSWORD } from "../modules/auth/demoAccounts";
+import { demoAccounts } from "../modules/auth/demoAccounts";
 import { dashboardHash, navigate } from "../routing/routes";
 
 export function LoginPage({ notice }: { notice?: string }) {
@@ -20,6 +20,7 @@ export function LoginPage({ notice }: { notice?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
+  const [recovery, setRecovery] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -165,6 +166,19 @@ export function LoginPage({ notice }: { notice?: string }) {
                 <ArrowRight size={18} />
               </button>
             </form>
+            <button
+              className="recovery-link"
+              onClick={() => setRecovery(!recovery)}
+            >
+              Password dimenticata?
+            </button>
+            {recovery && (
+              <p role="status">
+                Recupero email non attivo nella demo. Usa le credenziali
+                dimostrative qui sotto. Supabase Auth sarà integrato in una fase
+                successiva.
+              </p>
+            )}
             <p className="auth-disclaimer">
               Demo pubblica: credenziali e controlli sono nel browser e non
               costituiscono un’autenticazione sicura. Non inserire password
@@ -174,7 +188,7 @@ export function LoginPage({ notice }: { notice?: string }) {
               <details className="auth-accounts">
                 <summary>Consulta gli account dimostrativi</summary>
                 <p>
-                  Password comune: <code>{DEMO_PASSWORD}</code>
+                  Password comune: <code>CampusDemo!2026</code>
                 </p>
                 <ul>
                   {demoAccounts.map((account) => (

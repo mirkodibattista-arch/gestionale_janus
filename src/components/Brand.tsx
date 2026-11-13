@@ -10,7 +10,7 @@ export function Brand() {
           JANUS
         </div>
         <div className="-mt-0.5 text-[9px] font-semibold tracking-[.17em] text-slate-400">
-          STUDENT MANAGER
+          DIGITAL CAMPUS
         </div>
       </div>
     </div>

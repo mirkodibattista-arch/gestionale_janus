@@ -1,6 +1,7 @@
 import type { Role } from "../../types/roles";
 
-export const DEMO_PASSWORD = "CampusDemo!2026";
+export const DEMO_PASSWORD_HASH =
+  "b99beae2bde05c9ea7972d2c4a9a086d262db7d64280a0d98f1693cee8f5164f";
 type DemoAccount = {
   id: string;
   email: string;
@@ -9,8 +10,8 @@ type DemoAccount = {
   active: boolean;
 };
 
-// Solo fixture pubbliche. La password condivisa è nel bundle: questa NON è
-// autenticazione sicura. Non usare account, password o dati personali reali.
+// Fixture pubbliche: digest dimostrativo, non autenticazione sicura.
+// La password di prova è documentata; non usare mai password reali.
 export const demoAccounts: readonly DemoAccount[] = [
   {
     id: "demo-01",
@@ -59,6 +60,13 @@ export const demoAccounts: readonly DemoAccount[] = [
     email: "studente@janus-demo.test",
     displayName: "Studente demo",
     role: "Studente",
+    active: true,
+  },
+  {
+    id: "demo-08",
+    email: "audit@janus-demo.test",
+    displayName: "Audit demo",
+    role: "Audit",
     active: true,
   },
 ];

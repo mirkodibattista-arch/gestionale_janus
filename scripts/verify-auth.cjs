@@ -28,9 +28,8 @@ const base = path.resolve(__dirname, "../src");
 const { createDemoAuthService, DEMO_SESSION_KEY, DEMO_SESSION_DURATION } = load(
   path.join(base, "modules/auth/demoAuthService.ts"),
 );
-const { demoAccounts, DEMO_PASSWORD } = load(
-  path.join(base, "modules/auth/demoAccounts.ts"),
-);
+const DEMO_PASSWORD = "CampusDemo!2026";
+const { demoAccounts } = load(path.join(base, "modules/auth/demoAccounts.ts"));
 const { canAccessModule, parseRoute, roleModules } = load(
   path.join(base, "routing/routes.ts"),
 );
@@ -132,7 +131,7 @@ const auth = createDemoAuthService(storage, () => now);
   assert.equal(parseRoute("#/campus/a/b").page, "not-found");
   assert.equal(parseRoute("#richiesta").page, "home");
   console.log(
-    "Auth demo: 7 account, associazioni ruolo, sessione/expiry/logout, storage corrotto/bloccato e accessi consentiti/negati verificati.",
+    "Auth demo: 8 account, associazioni ruolo, sessione/expiry/logout, storage corrotto/bloccato e accessi consentiti/negati verificati.",
   );
 })().catch((error) => {
   console.error(error);

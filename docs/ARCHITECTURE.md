@@ -61,3 +61,7 @@ Il form di orientamento reale già presente nel prototipo conserva il suo invio 
 ## Evoluzione dopo la prima PR
 
 La PR successiva sul branch `feat/janus-demo-login` aggiunge login demo, sette ruoli e navigazione per account. La fotografia e il confronto con main riportati sopra descrivono il punto di partenza della prima PR; non rappresentano più lo stato completo dell'app. Il nuovo stato e i limiti del login sono documentati in [DEMO_LOGIN.md](DEMO_LOGIN.md). La verifica della dashboard è ora affidata ai test Auth/UI e la regressione del form conserva sei scenari.
+
+## Evoluzione Digital Campus
+
+Le route attive e lo stato dell'implementazione successiva sono descritti in [CAMPUS_IMPLEMENTATION.md](CAMPUS_IMPLEMENTATION.md). Le descrizioni sopra fotografano il refactor storico; il campus aggiunge ora gli otto ruoli, il nuovo design e i primi flussi operativi demo.

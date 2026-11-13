@@ -4,6 +4,10 @@ export const roleStats: Record<
   Role,
   { intro: string; items: [string, string, string, string] }
 > = {
+  Audit: {
+    intro: "Consultazione delle informazioni autorizzate.",
+    items: ["Studenti autorizzati", "Attività", "Tutor", "Report"],
+  },
   Admin: {
     intro: "Panoramica operativa dell’intero gestionale.",
     items: [

@@ -6,5 +6,6 @@ export const roles = [
   "Didattica",
   "Tutor",
   "Studente",
+  "Audit",
 ] as const;
 export type Role = (typeof roles)[number];

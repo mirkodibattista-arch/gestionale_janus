@@ -5,19 +5,28 @@ export const roleModules: Record<Role, readonly CampusModuleId[]> = {
   Admin: [
     "dashboard",
     "studenti",
-    "iscrizioni",
     "tutor",
     "segreteria",
     "didattica",
     "amministrazione",
+    "calendario",
+    "attivita",
+    "statistiche",
+    "report",
+    "operatori",
+    "permessi",
+    "impostazioni",
   ],
   Supervisore: [
     "dashboard",
     "studenti",
-    "iscrizioni",
+    "tutor",
     "segreteria",
     "didattica",
     "calendario",
+    "attivita",
+    "statistiche",
+    "report",
   ],
   Segreteria: [
     "dashboard",
@@ -35,6 +44,7 @@ export const roleModules: Record<Role, readonly CampusModuleId[]> = {
     "contratti",
     "pagamenti",
     "scadenze",
+    "report",
   ],
   Didattica: [
     "dashboard",
@@ -42,9 +52,19 @@ export const roleModules: Record<Role, readonly CampusModuleId[]> = {
     "tutor",
     "didattica",
     "calendario",
+    "attivita",
     "materiali",
+    "valutazioni",
+    "statistiche",
   ],
-  Tutor: ["dashboard", "studenti", "calendario", "materiali", "valutazioni"],
+  Tutor: [
+    "dashboard",
+    "studenti",
+    "calendario",
+    "attivita",
+    "materiali",
+    "valutazioni",
+  ],
   Studente: [
     "dashboard",
     "profilo",
@@ -54,6 +74,7 @@ export const roleModules: Record<Role, readonly CampusModuleId[]> = {
     "esami",
     "il-mio-tutor",
   ],
+  Audit: ["dashboard", "studenti", "attivita", "statistiche", "report"],
 };
 export type AppRoute =
   | { page: "home" }

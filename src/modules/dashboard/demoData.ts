@@ -1,6 +1,7 @@
 import type { Role } from "../../types/roles";
 
 export const roleValues: Record<Role, [string, string, string, string]> = {
+  Audit: ["12", "24", "3", "6"],
   Admin: ["248", "18", "€ 42.850", "16"],
   Supervisore: ["24", "8", "12", "6"],
   Segreteria: ["248", "18", "32", "14"],
@@ -13,6 +14,7 @@ export const roleTasks: Record<
   Role,
   [string, string, string, string, string][]
 > = {
+  Audit: [],
   Admin: [
     [
       "Studente Demo 01",
@@ -173,6 +175,13 @@ export const roleCharts: Record<
     values: number[];
   }
 > = {
+  Audit: {
+    title: "Attività autorizzate",
+    caption: "Dati sintetici",
+    legend: "Attività",
+    max: 30,
+    values: [2, 4, 6, 8, 10, 12],
+  },
   Admin: {
     title: "Andamento iscrizioni",
     caption: "Nuove pratiche · ultimi 6 mesi",
@@ -224,6 +233,7 @@ export const roleCharts: Record<
   },
 };
 export const roleActivities: Record<Role, [string, string, string][]> = {
+  Audit: [],
   Admin: [
     ["SE", "Segreteria", "ha completato una pratica demo"],
     ["DI", "Didattica", "ha aggiornato un’assegnazione demo"],

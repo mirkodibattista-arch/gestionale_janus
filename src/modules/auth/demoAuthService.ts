@@ -1,4 +1,4 @@
-import { DEMO_PASSWORD, demoAccounts } from "./demoAccounts";
+import { DEMO_PASSWORD_HASH, demoAccounts } from "./demoAccounts";
 import type { AuthService, AuthSession } from "./types";
 
 export const DEMO_SESSION_KEY = "janus.demo-auth.v1";
@@ -57,7 +57,14 @@ export function createDemoAuthService(
       const account = demoAccounts.find(
         (item) => item.email === email.trim().toLowerCase(),
       );
-      if (!account || password !== DEMO_PASSWORD)
+      const digest = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(password),
+      );
+      const hash = Array.from(new Uint8Array(digest), (b) =>
+        b.toString(16).padStart(2, "0"),
+      ).join("");
+      if (!account || hash !== DEMO_PASSWORD_HASH)
         throw new Error("Email o password demo non corretti.");
       if (!account.active)
         throw new Error("Account demo non attivo. Contatta l’amministratore.");

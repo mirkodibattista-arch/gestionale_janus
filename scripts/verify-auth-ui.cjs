@@ -16,6 +16,7 @@ for (const key of [
   "Event",
   "MouseEvent",
   "StorageEvent",
+  "FormData",
 ])
   global[key] = dom.window[key];
 Object.defineProperty(global, "navigator", {
@@ -29,6 +30,10 @@ const { act } = React;
 const { createRoot } = require("react-dom/client");
 const cache = new Map();
 let backendCalls = 0;
+global.fetch = () => {
+  backendCalls++;
+  throw Error("No network permitted in demo tests");
+};
 const mode = process.argv.includes("--disabled") ? "disabled" : "demo";
 function load(file) {
   if (cache.has(file)) return cache.get(file);
@@ -118,7 +123,7 @@ async function login(role) {
       );
     await sleep();
   });
-  assert.equal(document.querySelector(".account-role b")?.textContent, role);
+  assert.equal(document.querySelector(".account-context b")?.textContent, role);
   assert.equal(window.location.hash, "#/campus/dashboard");
 }
 (async () => {
@@ -166,39 +171,39 @@ async function login(role) {
     "Didattica",
     "Tutor",
     "Studente",
+    "Audit",
   ]) {
     await start();
     await login(role);
     assert.equal(document.querySelector(".dashboard-shell select"), null);
-    assert.ok(document.querySelectorAll(".kpi-card").length === 4);
+    assert.ok(document.querySelectorAll(".cp-metrics article").length === 4);
     if (["Studente", "Tutor", "Segreteria"].includes(role))
       assert.ok(
         !document
           .querySelector(".dash-sidebar")
           .textContent.includes("Amministrazione"),
       );
-    if (role === "Studente")
-      assert.ok(
-        document
-          .querySelector("h1")
-          .textContent.includes("Il tuo prossimo traguardo"),
-      );
-    if (role === "Tutor")
-      assert.ok(
-        document
-          .querySelector("h1")
-          .textContent.includes("Il tuo spazio di tutoraggio"),
-      );
     // Remount alla stessa URL: ripristino della sessione dopo ricaricamento.
     await start("#/campus/dashboard", true);
-    assert.equal(document.querySelector(".account-role b").textContent, role);
+    assert.equal(
+      document.querySelector(".account-context b").textContent,
+      role,
+    );
     const href = document
       .querySelectorAll(".dash-sidebar nav a")[1]
       .getAttribute("href");
+    // Every exposed route must render a real module rather than a placeholder.
+    const links = [...document.querySelectorAll(".dash-sidebar nav a")].map(
+      (a) => a.getAttribute("href"),
+    );
+    for (const link of links) {
+      await route(link);
+      assert.ok(document.querySelector(".dashboard-shell"), `${role}: ${link}`);
+      assert.equal(document.querySelector(".module-preview"), null);
+    }
     await route(href);
-    assert.ok(document.querySelector(".module-preview"));
-    await click(".module-preview a");
-    assert.ok(document.querySelector(".account-role"));
+    assert.ok(document.querySelector(".cp-panel"));
+    await route("#/campus/dashboard");
     await click(".mobile-menu");
     assert.ok(document.querySelector(".mobile-dash-menu"));
     await click(".mobile-dash-menu a:nth-child(2)");
@@ -211,7 +216,7 @@ async function login(role) {
       );
       assert.equal(document.querySelector(".dashboard-shell"), null);
       await click(".auth-status .auth-submit");
-      assert.ok(document.querySelector(".account-role"));
+      assert.ok(document.querySelector(".account-context"));
     }
     await click(".campus-logout");
     assert.ok(document.querySelector("#login-email"));
@@ -219,6 +224,94 @@ async function login(role) {
     assert.equal(document.querySelector(".dashboard-shell"), null);
     console.log(`UI React: ${role} login, route, sessione e logout OK`);
   }
+  // Cross-module demo workflow: one record, changes reflected everywhere.
+  await start();
+  await login("Admin");
+  await route("#/campus/studenti");
+  await click(".cp-toolbar .cp-button");
+  async function fill(selector, value) {
+    const node = document.querySelector(selector);
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      ).set.call(node, value);
+      node.dispatchEvent(new window.Event("input", { bubbles: true }));
+    });
+  }
+  async function submit(selector) {
+    await act(async () => {
+      document
+        .querySelector(selector)
+        .dispatchEvent(
+          new window.Event("submit", { bubbles: true, cancelable: true }),
+        );
+      await sleep();
+    });
+  }
+  await fill('input[name="name"]', "Demo Nuovo Studente");
+  await fill('input[name="email"]', "nuovo@example.test");
+  await submit(".cp-form");
+  assert.ok(
+    document
+      .querySelector(".cp-profile-head")
+      .textContent.includes("Demo Nuovo Studente"),
+  );
+  await route("#/campus/attivita");
+  const before = document.querySelectorAll("tbody tr").length;
+  await fill('input[name="note"]', "Contatto test tra moduli");
+  await submit(".cp-form");
+  assert.equal(document.querySelectorAll("tbody tr").length, before + 1);
+  await route("#/campus/dashboard");
+  assert.equal(
+    document.querySelectorAll(".cp-metrics strong")[2].textContent,
+    "25",
+  );
+  await route("#/campus/amministrazione");
+  const openBefore = document.querySelectorAll("tbody button").length;
+  await click("tbody button");
+  assert.equal(
+    document.querySelectorAll("tbody button").length,
+    openBefore - 1,
+  );
+  await route("#/campus/segreteria");
+  const missingBefore = document.querySelectorAll("tbody button").length;
+  await click("tbody button");
+  assert.equal(
+    document.querySelectorAll("tbody button").length,
+    missingBefore - 1,
+  );
+  await click('button[aria-label="Cambia tema"]');
+  assert.ok(document.querySelector(".campus-app.light"));
+  await click(".campus-logout");
+  await login("Audit");
+  await route("#/campus/studenti");
+  assert.equal(document.querySelectorAll("tbody tr").length, 6);
+  assert.equal(document.querySelector(".cp-toolbar .cp-button"), null);
+  await click(".cp-student-link");
+  assert.equal(
+    document.querySelector(".cp-profile-head + .cp-two select"),
+    null,
+  );
+  assert.ok(
+    !document.querySelector(".cp-stack").textContent.includes("Registra saldo"),
+  );
+  await route("#/campus/attivita");
+  assert.equal(document.querySelector("form"), null);
+  await route("#/campus/operatori");
+  assert.ok(
+    document.querySelector("h1").textContent.includes("Accesso negato"),
+  );
+  await start();
+  await login("Tutor");
+  await route("#/campus/studenti");
+  assert.equal(
+    document.querySelector(".cp-panel-head p").textContent.split(" ")[0],
+    "8",
+  );
+  console.log(
+    "Campus: creazione studente, attività/KPI, pagamento, documenti, tema, perimetro Tutor/Audit e divieti Audit OK.",
+  );
   await start();
   await login("Studente");
   // Simula la notifica storage che il browser emette dopo il logout in un'altra scheda.
