@@ -1,3 +1,5 @@
+> Requisito permanente aggiornato il 13 novembre 2026: [ADR-001 — Un’applicazione, due portali](architecture/ADR-001-dual-portals.md). Questa decisione prevale sui riferimenti storici a un’unica interfaccia dashboard.
+
 # Architettura JANUS Digital Campus
 
 ## Punto di partenza su main

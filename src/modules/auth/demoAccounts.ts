@@ -8,6 +8,11 @@ type DemoAccount = {
   displayName: string;
   role: Role;
   active: boolean;
+  scope?: {
+    studentId?: string;
+    tutorId?: string;
+    auditStudentIds?: readonly string[];
+  };
 };
 
 // Fixture pubbliche: digest dimostrativo, non autenticazione sicura.
@@ -53,6 +58,7 @@ export const demoAccounts: readonly DemoAccount[] = [
     email: "tutor@janus-demo.test",
     displayName: "Tutor demo",
     role: "Tutor",
+    scope: { tutorId: "TU-1" },
     active: true,
   },
   {
@@ -60,6 +66,7 @@ export const demoAccounts: readonly DemoAccount[] = [
     email: "studente@janus-demo.test",
     displayName: "Studente demo",
     role: "Studente",
+    scope: { studentId: "ST-001" },
     active: true,
   },
   {
@@ -67,6 +74,16 @@ export const demoAccounts: readonly DemoAccount[] = [
     email: "audit@janus-demo.test",
     displayName: "Audit demo",
     role: "Audit",
+    scope: {
+      auditStudentIds: [
+        "ST-001",
+        "ST-002",
+        "ST-003",
+        "ST-004",
+        "ST-005",
+        "ST-006",
+      ],
+    },
     active: true,
   },
 ];

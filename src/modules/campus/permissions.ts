@@ -5,14 +5,15 @@ export function visibleStudents(
   session: AuthSession,
 ): Student[] {
   if (session.role === "Studente")
-    return data.students.filter((s) => s.id === "ST-001");
+    return data.students.filter((s) => s.id === session.scope?.studentId);
   if (session.role === "Tutor")
-    return data.students.filter((s) => s.tutorId === "TU-1");
+    return data.students.filter(
+      (s) =>
+        Boolean(session.scope?.tutorId) && s.tutorId === session.scope?.tutorId,
+    );
   if (session.role === "Audit")
-    return data.students.filter((s) =>
-      ["ST-001", "ST-002", "ST-003", "ST-004", "ST-005", "ST-006"].includes(
-        s.id,
-      ),
+    return data.students.filter(
+      (s) => session.scope?.auditStudentIds?.includes(s.id) ?? false,
     );
   return data.students;
 }

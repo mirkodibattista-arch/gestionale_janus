@@ -1,9 +1,11 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Bell, Home, LogOut, Menu, ShieldCheck, Sun, Moon } from "lucide-react";
+import { useCampusTheme } from "./useCampusTheme";
 import { Brand } from "../components/Brand";
 import { useAuth } from "../modules/auth/AuthProvider";
 import type { AuthSession } from "../modules/auth/types";
 import { campusModules, type CampusModuleId } from "../modules/registry";
+import { portalHash } from "../routing/portals";
 import { moduleLabel, navigate, roleModules } from "../routing/routes";
 
 type DashboardLayoutProps = {
@@ -16,20 +18,7 @@ export function DashboardLayout({
   session,
   activeModule = "dashboard",
 }: DashboardLayoutProps) {
-  const [theme, setTheme] = useState(() => {
-    try {
-      return localStorage.getItem("janus.theme") ?? "dark";
-    } catch {
-      return "dark";
-    }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem("janus.theme", theme);
-    } catch {
-      /* optional preference */
-    }
-  }, [theme]);
+  const { theme, toggleTheme } = useCampusTheme();
   const { signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
@@ -45,7 +34,7 @@ export function DashboardLayout({
         <a
           key={id}
           className={`dash-nav-item${id === activeModule ? " active" : ""}`}
-          href={`#/campus/${id}`}
+          href={portalHash(session.role, id)}
           onClick={() => setMenuOpen(false)}
           aria-current={id === activeModule ? "page" : undefined}
         >
@@ -54,7 +43,11 @@ export function DashboardLayout({
       );
     });
   return (
-    <main className={`dashboard-shell campus-app ${theme}`} data-theme={theme}>
+    <main
+      className={`dashboard-shell campus-app ${theme}`}
+      data-theme={theme}
+      data-portal="azienda"
+    >
       <aside className="dash-sidebar">
         <a href="#/" aria-label="Home JANUS">
           <Brand />
@@ -62,8 +55,12 @@ export function DashboardLayout({
         <div className="demo-pill">
           <span /> DEMO LOCALE
         </div>
-        <div className="dash-nav-label">IL TUO CAMPUS</div>
-        <nav className="dash-nav" aria-label="Navigazione campus">
+        <div className="dash-nav-label">PORTALE AZIENDALE</div>
+        <nav
+          data-portal-navigation
+          className="dash-nav"
+          aria-label="Navigazione campus"
+        >
           {navLinks()}
         </nav>
         <div className="sidebar-bottom">
@@ -92,7 +89,7 @@ export function DashboardLayout({
           <button
             className="icon-button"
             aria-label="Cambia tema"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={toggleTheme}
           >
             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>

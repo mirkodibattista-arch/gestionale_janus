@@ -1,7 +1,9 @@
 import { ArrowLeft, ShieldAlert } from "lucide-react";
-import { dashboardHash } from "../routing/routes";
+import { portalHash } from "../routing/portals";
+import { useAuth } from "../modules/auth/AuthProvider";
 
 export function AccessDeniedPage({ notFound = false }: { notFound?: boolean }) {
+  const { session } = useAuth();
   return (
     <main className="auth-page auth-status">
       <section className="auth-card">
@@ -14,7 +16,7 @@ export function AccessDeniedPage({ notFound = false }: { notFound?: boolean }) {
             ? "Questo indirizzo non corrisponde a una pagina del campus."
             : "Il tuo account non è autorizzato ad aprire questa sezione."}
         </p>
-        <a className="auth-submit" href={dashboardHash}>
+        <a className="auth-submit" href={session ? portalHash(session.role) : "#/login"}>
           <ArrowLeft size={16} /> Torna alla tua dashboard
         </a>
         <a className="auth-back" href="#/">

@@ -17,6 +17,17 @@ Apri nel browser l'indirizzo **Local** scritto da Vite (normalmente `http://loca
 
 Se Git segnala modifiche locali, conservale prima di cambiare branch. Non usare comandi di ripristino distruttivi. Per scaricare aggiornamenti successivi sullo stesso branch: `git pull --ff-only`.
 
+## Architettura permanente: due portali
+
+Un’unica applicazione JANUS, un solo login e un’unica anagrafica condivisa. L’account determina automaticamente il portale:
+
+- **Portale Aziendale** (`#/azienda/dashboard`): Admin, Supervisore, Segreteria, Didattica, Amministrazione e Tutor. Audit è una modalità aziendale in sola lettura.
+- **Portale Studente** (`#/studente/dashboard`): interfaccia dedicata a profilo, piano, materie, calendario, tutor, documenti, esami, avanzamento e comunicazioni personali.
+
+Le vecchie route `#/campus/...` restano compatibili e portano al portale autorizzato. Uno studente non può aprire il portale aziendale; il personale non può usare il portale Studente come impersonificazione.
+
+Requisito permanente: [ADR-001](docs/architecture/ADR-001-dual-portals.md). Supabase Auth, autorizzazioni server e RLS sono **progettati, non attivati**; in questa fase sono disponibili solo fixture e controlli client. Il futuro backend dovrà restituire esclusivamente i dati autorizzati. Non inserire dati reali nella demo.
+
 ## Accessi demo
 
 Password di prova comune: **`CampusDemo!2026`**. È pubblica e serve solo alle prove.
@@ -32,7 +43,11 @@ Password di prova comune: **`CampusDemo!2026`**. È pubblica e serve solo alle p
 | Studente        | studente@janus-demo.test        |
 | Audit           | audit@janus-demo.test           |
 
-Il ruolo viene risolto dall'account, senza selettore. Per cambiare account usa **Esci**. La fixture contiene un digest SHA-256; password e hash non vengono salvati nella sessione. Questo meccanismo client, con credenziali pubbliche e dati interamente nel bundle, **non è autenticazione sicura**. Autorizzazioni server e RLS non sono implementate.
+Il ruolo e il collegamento a studente/tutor vengono risolti dall’account fixture, senza selettore. Per cambiare account usa **Esci**. La fixture contiene un digest SHA-256; password e hash non vengono salvati nella sessione. Questo meccanismo client, con credenziali pubbliche e dati interamente nel bundle, **non è autenticazione sicura**. Autorizzazioni server e RLS non sono implementate.
+
+## Dashboard di reparto
+
+Admin dispone di quadro generale, priorità documentali/iscrizioni/pagamenti, grafico iscrizioni e attività recenti. Segreteria vede pratiche e documenti; Didattica lezioni e assenze; Tutor i propri studenti e attività; Amministrazione contratti e saldi simulati; Supervisore e Audit indicatori di consultazione. I collegamenti rapidi rispettano i menu autorizzati e i conteggi cambiano con le operazioni demo.
 
 ## Cosa provare
 
@@ -45,7 +60,7 @@ Il ruolo viene risolto dall'account, senza selettore. Per cambiare account usa *
 - **Operatori:** aggiunta, sospensione e cambio ruolo simulati solo per Admin. Non modifica le credenziali e i ruoli degli account di login. Il proprio account non è modificabile.
 - **Impostazioni:** ripristino delle fixture. Tema chiaro/scuro nel pulsante della barra superiore.
 
-Tutor vede gli studenti di `TU-1`; Studente vede `ST-001`; Audit può consultare `ST-001`–`ST-006`, attività e report, senza operazioni di scrittura. I campi finanziari sono riservati ad Admin e Amministrazione.
+Gli account demo hanno associazioni esplicite: Tutor → `TU-1`, Studente → `ST-001`; Audit può consultare `ST-001`–`ST-006`, attività e report, senza operazioni di scrittura. I campi finanziari sono riservati ad Admin e Amministrazione.
 
 Le operazioni sui dati durano **fino al ricaricamento della pagina** e sono condivise tra gli account provati nella stessa pagina. Sessione demo e tema sono salvati solo nel browser; nessun dato studente viene scritto in localStorage.
 

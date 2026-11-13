@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import {
-  ArrowLeft,
   ArrowRight,
   Eye,
   EyeOff,
@@ -13,7 +12,8 @@ import {
 import { Brand } from "../components/Brand";
 import { useAuth } from "../modules/auth/AuthProvider";
 import { demoAccounts } from "../modules/auth/demoAccounts";
-import { dashboardHash, navigate } from "../routing/routes";
+import { navigate } from "../routing/routes";
+import { portalHash } from "../routing/portals";
 
 export function LoginPage({ notice }: { notice?: string }) {
   const { signIn, demoEnabled } = useAuth();
@@ -29,8 +29,8 @@ export function LoginPage({ notice }: { notice?: string }) {
     setBusy(true);
     setError("");
     try {
-      await signIn(email, password);
-      navigate(dashboardHash);
+      const authenticated = await signIn(email, password);
+      navigate(portalHash(authenticated.role));
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -48,9 +48,9 @@ export function LoginPage({ notice }: { notice?: string }) {
       <div className="auth-shell">
         <div className="auth-brand">
           <Brand />
-          <a href="#/" className="auth-back">
-            <ArrowLeft size={15} /> Torna alla Home
-          </a>
+          <span className="auth-back">
+            PORTALE AZIENDALE + PORTALE STUDENTE
+          </span>
         </div>
         <div className="auth-grid">
           <section className="auth-intro">
@@ -63,8 +63,9 @@ export function LoginPage({ notice }: { notice?: string }) {
               <span>Un solo accesso.</span>
             </h1>
             <p>
-              Il campus digitale che unisce persone, percorsi e opportunità.
-              Accedi al tuo spazio personale e riprendi da dove eri rimasto.
+              Il gestionale JANUS per il personale e gli studenti. Un’unica
+              applicazione, due portali dedicati: il tuo account apre
+              automaticamente lo spazio giusto.
             </p>
             <div className="auth-feature">
               <GraduationCap size={23} />
@@ -91,7 +92,10 @@ export function LoginPage({ notice }: { notice?: string }) {
             </div>
             <div className="auth-eyebrow">BENVENUTO NEL CAMPUS</div>
             <h2 id="login-title">Accedi a JANUS</h2>
-            <p>Inserisci le credenziali del tuo account demo.</p>
+            <p>
+              Usa il tuo account demo. Riconosciamo automaticamente il ruolo e
+              il tuo portale.
+            </p>
             {notice && (
               <p className="auth-notice" role="status">
                 {notice}

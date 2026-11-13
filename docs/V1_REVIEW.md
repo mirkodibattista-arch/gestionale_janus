@@ -1,46 +1,70 @@
-# JANUS Digital Campus v1 — revisione del 13 novembre 2026
+# JANUS Digital Campus v1 — consolidamento del 13 novembre 2026
 
-## Base analizzata
+## Analisi prima dello sviluppo
 
-| Branch | Commit | Esito |
+| Branch analizzato | Commit iniziale | Contenuto |
 | --- | --- | --- |
-| main | 09b5e9c | Refactor modulare già integrato |
+| main | 09b5e9c | Refactor modulare integrato |
 | feat/janus-modular-architecture | cc05624 | Già incluso in main |
-| feat/janus-demo-login | adbb398 | Login e sette ruoli, un commit oltre main |
-| feat/janus-digital-campus | 6242f70 | Include integralmente il login e aggiunge campus demo |
+| feat/janus-demo-login | adbb398 | Login demo e sette ruoli |
+| feat/janus-digital-campus | 6242f70 | Campus navigabile e Audit |
+| feat/janus-digital-campus-v1 | c702c0f | Modifica anagrafica e validazione |
+| feat/janus-dual-portals | 67b22da | Due portali e requisito architetturale permanente |
 
-Nuovo branch: `feat/janus-digital-campus-v1`, derivato dal campus più completo. Nessun refactor ricreato da zero. PR #2 e #3 preesistenti lasciate invariate; la nuova PR verso main include anche i loro commit non ancora integrati. Non unire le PR precedenti senza confrontare i contenuti sovrapposti.
+Tutti i branch appartengono alla stessa sequenza di sviluppo. La base funzionale più completa è dual-portals. Il lavoro viene consolidato in **feat/janus-digital-campus-v1**, come richiesto, preservando il contenuto dei due portali. Nessun merge di PR eseguito e nessuna modifica a main.
 
-## Incremento realizzato
+## Piano tecnico applicato
 
-- Form condiviso di creazione e modifica anagrafica, disponibile per Admin e Segreteria.
-- Contatti, località, età, stato, percorso, indirizzo e anno scolastico modificabili; controlli su email duplicate, limiti dei campi e valori consentiti.
-- Controlli anche nel provider, indipendenti dalla presenza dei pulsanti. Una modifica anagrafica non cambia tutor, saldo o verifiche documentali.
-- Ricerca per nome, codice, email e città; azzeramento ricerca e filtri.
-- Aggiornamento delle stesse entità in scheda, segreteria, dashboard e report. Nessuna persistenza dei dati studenti oltre il reload.
-- Area personale senza pulsante per tornare all’elenco generale.
-- Test di regressione, test browser riproducibili e istruzioni per futura configurazione Pages.
+1. Conservare React 18, TypeScript strict, Vite, AuthProvider e servizi demo sostituibili.
+2. Consolidare il routing protetto dei due portali e la sola anagrafica condivisa.
+3. Rendere distinti indicatori e priorità delle dashboard di reparto con dati calcolati dal CampusProvider.
+4. Conservare ricerca, cinque filtri, paginazione, creazione/modifica e schede studenti.
+5. Verificare login, tutti i ruoli, navigazione, aggiornamenti tra moduli e limiti demo.
+6. Mantenere preparazione Cloudflare documentale, senza deployment. Aggiornare la PR v1 verso main per una revisione complessiva.
 
-## Verifiche della revisione
+## Moduli e responsabilità
 
-| Verifica | Risultato |
+- App.tsx: autenticazione, guardie, scelta del portale e compatibilità con le vecchie route.
+- modules/auth: credenziali fittizie, ruolo e scope da account, sessione demo, nessun adapter reale attivo.
+- layouts: layout aziendale e studente distinti, tema condiviso e navigazione per ruolo.
+- modules/campus: stato e mutazioni demo, anagrafica unica e proiezione didattica condivisa.
+- modules/dashboard/summary.ts: indicatori e priorità di reparto calcolati sul perimetro visibile; collegamenti limitati ai moduli autorizzati.
+- modules/students: ricerca, filtri, scheda e form anagrafico validato.
+- modules/student-portal: esperienza personale, comunicazioni rivolte al solo studente e assenza di note interne.
+- services/campusRepository.ts: confine esistente per il futuro accesso dati.
+
+## Accessi e dashboard
+
+I ruoli aziendali nominati sono sei: Admin, Supervisore, Segreteria, Didattica, Amministrazione e Tutor. Con la modalità Audit sono sette profili aziendali; lo Studente ha il portale personale. Non è stato inventato un ulteriore ruolo per risolvere la differenza nel conteggio.
+
+| Profilo | Quadro operativo demo |
 | --- | --- |
-| npm install | Completato |
-| npm run build | Superato, TypeScript strict e Vite |
-| npm run typecheck | Superato |
-| npm test | Superato: account, tutti i menu per ruolo, sessioni, navigazione e operazioni demo |
-| Modifica studenti | Superata in React/jsdom: duplicati rifiutati, modifica e ricerca email, aggiornamento Segreteria |
-| Guardie dirette | Modifica rifiutata per Audit, Studente, Supervisore, Tutor, Didattica e Amministrazione; consentita per Segreteria |
-| Backend | Fetch bloccato nei test; zero chiamate effettuate |
-| npm run test:browser | Bloccato prima dei test: Chromium termina con socket() failed: Operation not permitted |
-| npm run verify:refactor | Fallisce già sulla base: snapshot storico attende STUDENT MANAGER invece di DIGITAL CAMPUS |
+| Admin | Studenti, tutor, attività, documenti; priorità iscrizioni/documenti/rate |
+| Supervisore | Iscrizioni, sospensioni, avanzamento e attività; consultazione |
+| Segreteria | Iscrizioni, documenti da verificare e programmazione esami |
+| Didattica | Studenti, tutor, lezioni e assenze |
+| Tutor | Studenti assegnati, lezioni, assenze e avanzamento del proprio perimetro |
+| Amministrazione | Saldo, rate, contratti sintetici e posizioni saldate |
+| Audit | Soli studenti autorizzati, attività, documenti e avanzamento; nessuna scrittura |
+| Studente | Profilo, piano/materie, calendario, tutor, documenti, esami, avanzamento e comunicazioni |
 
-Non è stata verificata visivamente questa revisione su browser desktop, mobile o Windows 11. Il test browser copre login, menu mobile, modifica scheda, overflow e Audit a 1440px e 390px, ma richiede esecuzione in un ambiente che consenta l’avvio di Chromium.
+Il login mantiene il design futuristico e presenta esplicitamente i due portali della stessa applicazione. Ruolo e portale derivano dall’account, senza selettore manuale. Non è presente una home vetrina nel flusso attivo.
 
-## Funzioni ereditate e limiti
+## Verifica
 
-Login, sette dashboard più Audit, 24 studenti sintetici, assegnazioni tutor, registro attività/assenze, saldi e documenti simulati, statistiche e CSV restano disponibili. Piani ed esami sono consultazioni sintetiche; documenti non sono allegati reali, WhatsApp e videochiamate sono registrazioni, contratti e operatori sono simulati. Non è dichiarato completato il gestionale di produzione o il confronto puntuale con GSJ: non è disponibile un accesso al GSJ originale.
+- npm run build: compilazione TypeScript strict e Vite superata.
+- npm run typecheck: controllo TypeScript separato.
+- npm test: login/logout degli otto account, tutte le voci dei menu, guardie, sessioni, due portali e operazioni demo.
+- Dashboard: indicatori differenziati per ruolo, tutti i collegamenti rapidi autorizzati e funzionanti; priorità Admin aggiornate dopo saldo e verifica documenti.
+- Due identità studente distinte nei test, associazione ricostruita anche dopo alterazione del localStorage, nessun fallback a un altro studente.
+- Test con backend bloccato: zero chiamate Supabase.
+- Quattro test browser desktop/mobile predisposti. La lista dei test è verificabile con npm run test:browser -- --list. Esecuzione visuale ancora da completare: Chromium è stato bloccato nell’ambiente da socket() failed: Operation not permitted.
+- Il vecchio verify:refactor confronta ancora uno snapshot del prototipo STUDENT MANAGER; il fallimento storico è noto e non è un criterio di accettazione del campus attuale.
 
-L’adapter Auth e il repository dati esistenti restano punti di futura integrazione. Nessuna modifica ai file Supabase, al database o alle migrazioni. Nessuna pubblicazione né merge eseguiti.
+## Stato e limiti
 
-Prossimo passo: eseguire le prove browser, rivedere la demo locale, quindi concordare il primo workflow reale di settore prima dell’integrazione dati.
+Prima versione navigabile demo. Piani/materie/calendario/esami sintetici; documenti senza allegati reali, notifiche locali, saldi e operatori simulati. Le modifiche ai dati durano fino al reload. Non è il gestionale completo di produzione e non è stato effettuato un confronto puntuale con GSJ originale in assenza di accesso.
+
+La [ADR-001](architecture/ADR-001-dual-portals.md) è il requisito permanente. Auth, autorizzazione server e RLS sono progettati per la futura integrazione e non attivi. Il bundle demo contiene dati fittizi e i filtri client non proteggono dati reali.
+
+Nessuna modifica a Supabase, migrazione, nuovo repository, ZIP o deployment. La PR #4 verso main diventa la revisione complessiva v1; la PR #5 conserva lo sviluppo precedente a due portali, ora incluso come contenuto nella v1. Non è richiesto effettuare merge separati delle PR sovrapposte.
