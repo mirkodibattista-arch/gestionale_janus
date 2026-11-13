@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "verify:refactor": "node scripts/verify-refactor.cjs",
     "verify:auth": "node scripts/verify-auth.cjs",
-    "verify:auth-ui": "node scripts/verify-auth-ui.cjs && node scripts/verify-auth-ui.cjs --disabled"
+    "verify:auth-ui": "node scripts/verify-auth-ui.cjs && node scripts/verify-auth-ui.cjs --disabled",
+    "typecheck": "tsc -b",
+    "test": "npm run verify:auth && npm run verify:auth-ui",
+    "test:browser": "playwright test"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.95.0",
@@ -21,6 +24,7 @@
     "tailwind-merge": "2.6.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/vite": "4.1.11",
     "@types/react": "18.3.18",
     "@types/react-dom": "18.3.5",

@@ -8,8 +8,8 @@ Dalla cartella del progetto che contiene `package.json`, apri PowerShell:
 
 ```powershell
 git fetch origin
-git switch feat/janus-digital-campus
-npm.cmd ci
+git switch feat/janus-digital-campus-v1
+npm.cmd install
 npm.cmd run dev
 ```
 
@@ -36,7 +36,7 @@ Il ruolo viene risolto dall'account, senza selettore. Per cambiare account usa *
 
 ## Cosa provare
 
-- **Studenti:** ricerca nome/cognome, cinque filtri combinabili, ordinamento e paginazione; apri il nome per la scheda. Admin e Segreteria possono aggiungere uno studente inventato.
+- **Studenti:** ricerca per nome, email, codice e città, cinque filtri combinabili, ordinamento e paginazione; apri il nome per la scheda. Admin e Segreteria possono aggiungere e modificare uno studente inventato. Email univoca, campi validati e pulsante per azzerare i filtri.
 - **Didattica / scheda studente:** Admin e Didattica possono cambiare tutor. L'assegnazione aggiorna anagrafica, elenchi tutor e statistiche.
 - **Registro attività:** Admin, Didattica e Tutor registrano telefonate, videochiamate, WhatsApp, lezioni e assenze. I contatori si aggiornano senza ricaricare.
 - **Segreteria:** conferma di verifica documentale simulata. Non carica file, non genera certificati o attestati.
@@ -55,6 +55,8 @@ La fase A è implementata insieme a un primo flusso operativo demo dei moduli su
 
 Il form pubblico precedente resta nel sorgente `src/modules/orientation`, ma è escluso dalle route attive della demo per evitare invii al backend. I file Supabase esistenti non sono modificati. L'analisi dello schema e l'integrazione reale richiedono una fase separata.
 
+La revisione corrente e il confronto di tutti i branch sono in [docs/V1_REVIEW.md](docs/V1_REVIEW.md).
+
 ## Verifiche
 
 ```powershell
@@ -64,5 +66,16 @@ npm.cmd run verify:auth-ui
 ```
 
 Build TypeScript rigoroso e Vite; test React/jsdom per otto account, tutte le route esposte, accessi negati, sessione/scadenza/logout, flussi tra moduli, sola lettura Audit, tema e assenza di chiamate backend. Le prove jsdom non sostituiscono i test su browser o Windows.
+
+Test browser riproducibili (Chromium):
+
+```powershell
+npx.cmd playwright install chromium
+npm.cmd run test:browser
+```
+
+Le prove browser di questa revisione sono predisposte per 1440px e 390px, ma qui sono bloccate all’avvio di Chromium da `socket() failed: Operation not permitted`. Non sono dichiarate superate. `npm test` esegue le verifiche funzionali jsdom; `npm run typecheck` controlla TypeScript.
+
+Per il collegamento futuro a Cloudflare, vedi [docs/CLOUDFLARE_PAGES.md](docs/CLOUDFLARE_PAGES.md). Nessun comando di pubblicazione è incluso.
 
 Vedi [docs/CAMPUS_IMPLEMENTATION.md](docs/CAMPUS_IMPLEMENTATION.md) per architettura, perimetro e verifiche browser. Il vecchio comando `verify:refactor` verifica uno snapshot storico del prototipo e non è un criterio di accettazione per il nuovo campus.

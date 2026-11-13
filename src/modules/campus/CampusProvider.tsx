@@ -9,9 +9,23 @@ import {
   canRecord,
   visibleStudents,
 } from "./permissions";
-import type { Activity, CampusData, Operator, Student } from "./types";
+import type { Activity, CampusData, Operator, Student, StudentDetails } from "./types";
+function validStudentDetails(s: StudentDetails, data: CampusData, id?: string) {
+  return s.name.trim().length >= 3 && s.name.length <= 80 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.email) && s.email.length <= 160 &&
+    !data.students.some(other => other.id !== id && other.email.toLowerCase() === s.email.toLowerCase()) &&
+    s.phone.trim().length > 0 && s.phone.length <= 30 &&
+    s.city.trim().length > 0 && s.city.length <= 80 &&
+    s.region.trim().length > 0 && s.region.length <= 80 &&
+    Number.isInteger(s.age) && s.age >= 14 && s.age <= 100 &&
+    ["Attivo", "In iscrizione", "Sospeso"].includes(s.status) &&
+    ["Diploma", "Recupero anni"].includes(s.path) &&
+    ["Liceo scientifico", "Informatica", "Amministrazione e marketing"].includes(s.course) &&
+    ["2025/26", "2026/27"].includes(s.year);
+}
 type Action =
   | { type: "student"; student: Student }
+  | { type: "update-student"; id: string; details: StudentDetails }
   | { type: "assign"; id: string; tutorId: string }
   | { type: "document"; id: string }
   | { type: "payment"; id: string }
@@ -35,7 +49,14 @@ export function CampusProvider({ children }: { children: ReactNode }) {
       setData(demoCampusRepository.load());
       return true;
     }
-    if (a.type === "student" && !canManageStudents(session.role)) return false;
+    if ((a.type === "student" || a.type === "update-student") &&
+      (!canManageStudents(session.role) || !validStudentDetails(
+        a.type === "student" ? a.student : a.details,
+        data, a.type === "student" ? undefined : a.id,
+      ))) return false;
+    if (a.type === "student" && (data.students.some(s => s.id === a.student.id) ||
+      !data.tutors.some(t => t.id === a.student.tutorId))) return false;
+    if ("id" in a && !data.students.some(s => s.id === a.id)) return false;
     if (
       a.type === "assign" &&
       (!canAssign(session.role) || !data.tutors.some((t) => t.id === a.tutorId))
@@ -62,6 +83,11 @@ export function CampusProvider({ children }: { children: ReactNode }) {
     setData((d) => {
       if (a.type === "activity")
         return { ...d, activities: [a.activity, ...d.activities] };
+      if (a.type === "update-student")
+        return { ...d, students: d.students.map(s => s.id === a.id ? { ...s, name: a.details.name, email: a.details.email,
+          phone: a.details.phone, city: a.details.city, region: a.details.region,
+          age: a.details.age, status: a.details.status, path: a.details.path,
+          course: a.details.course, year: a.details.year } : s) };
       if (a.type === "operator")
         return {
           ...d,

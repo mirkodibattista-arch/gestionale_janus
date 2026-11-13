@@ -257,6 +257,23 @@ async function login(role) {
       .querySelector(".cp-profile-head")
       .textContent.includes("Demo Nuovo Studente"),
   );
+  await click(".cp-stack > .cp-button");
+  await fill('input[name="name"]', "Demo Studente Aggiornato");
+  await fill('input[name="email"]', "studente1@example.test");
+  await submit(".cp-form");
+  assert.ok(document.querySelector('[role="alert"]').textContent.includes("univoca"));
+  assert.ok(document.querySelector(".cp-profile-head").textContent.includes("Demo Nuovo Studente"));
+  await fill('input[name="email"]', "aggiornato@example.test");
+  await fill('input[name="city"]', "Firenze");
+  await submit(".cp-form");
+  assert.ok(document.querySelector(".cp-profile-head").textContent.includes("Demo Studente Aggiornato"));
+  assert.ok(document.querySelector(".cp-two").textContent.includes("Firenze"));
+  await click(".cp-stack > .cp-link");
+  await fill('input[aria-label="Cerca studenti"]', "aggiornato@example.test");
+  assert.equal(document.querySelectorAll("tbody tr").length, 1);
+  assert.ok(document.querySelector("tbody").textContent.includes("Demo Studente Aggiornato"));
+  await route("#/campus/segreteria");
+  assert.ok(document.querySelector("tbody").textContent.includes("Demo Studente Aggiornato"));
   await route("#/campus/attivita");
   const before = document.querySelectorAll("tbody tr").length;
   await fill('input[name="note"]', "Contatto test tra moduli");
@@ -296,6 +313,7 @@ async function login(role) {
   assert.ok(
     !document.querySelector(".cp-stack").textContent.includes("Registra saldo"),
   );
+  assert.equal(document.querySelector(".cp-stack > .cp-button"), null);
   await route("#/campus/attivita");
   assert.equal(document.querySelector("form"), null);
   await route("#/campus/operatori");
@@ -335,6 +353,35 @@ async function login(role) {
   assert.ok(
     document.querySelector("h1").textContent.includes("Pagina non trovata"),
   );
+  // Exercise provider guards directly, even when no editing button is rendered.
+  await act(async () => root.unmount());
+  window.localStorage.clear();
+  const { AuthProvider, useAuth } = load(path.resolve(__dirname, "../src/modules/auth/AuthProvider.tsx"));
+  const { CampusProvider, useCampus } = load(path.resolve(__dirname, "../src/modules/campus/CampusProvider.tsx"));
+  let auth, campus;
+  function Probe() { auth = useAuth(); campus = useCampus(); return null; }
+  root = createRoot(document.getElementById("root"));
+  await act(async () => root.render(React.createElement(AuthProvider, null,
+    React.createElement(CampusProvider, null, React.createElement(Probe)))));
+  for (const role of ["Audit", "Studente", "Supervisore", "Tutor", "Didattica", "Amministrazione"]) {
+    await act(async () => auth.signIn(`${role.toLowerCase()}@janus-demo.test`, "CampusDemo!2026"));
+    const original = campus.data.students[0];
+    await act(async () => {
+      assert.equal(campus.mutate({ type: "update-student", id: original.id, details: { ...original, name: "Vietato Demo" } }), false);
+    });
+    assert.equal(campus.data.students[0], original);
+  }
+  await act(async () => auth.signIn("segreteria@janus-demo.test", "CampusDemo!2026"));
+  const original = campus.data.students[0];
+  await act(async () => {
+    assert.equal(campus.mutate({ type: "update-student", id: "inesistente", details: original }), false);
+    assert.equal(campus.mutate({ type: "update-student", id: original.id, details: { ...original, age: -1 } }), false);
+    assert.equal(campus.mutate({ type: "update-student", id: original.id, details: { ...original, name: "Aggiornato Segreteria", balance: 0, tutorId: "TU-3" } }), true);
+  });
+  assert.equal(campus.data.students[0].name, "Aggiornato Segreteria");
+  assert.equal(campus.data.students[0].balance, original.balance);
+  assert.equal(campus.data.students[0].tutorId, original.tutorId);
+  console.log("Studenti: modifica, duplicati, ricerca email, coerenza reparti e guardie dirette per ruolo OK.");
   await act(async () => root.unmount());
   dom.window.close();
   assert.equal(backendCalls, 0);

@@ -46,3 +46,5 @@ export type CampusData = {
   activities: Activity[];
   operators: Operator[];
 };
+
+export type StudentDetails = Pick<Student, "name" | "email" | "phone" | "city" | "region" | "age" | "status" | "path" | "course" | "year">;

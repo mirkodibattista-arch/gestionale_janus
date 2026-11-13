@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import {
   ArrowLeft,
   ArrowUpDown,
@@ -8,7 +8,8 @@ import {
   Search,
 } from "lucide-react";
 import type { AuthSession } from "../auth/types";
-import type { Student } from "../campus/types";
+import type { Student, StudentDetails } from "../campus/types";
+import { StudentForm } from "./StudentForm";
 import { useCampus } from "../campus/CampusProvider";
 import {
   canAssign,
@@ -34,13 +35,14 @@ export function StudentsModule({
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [ascending, setAscending] = useState(true);
   const [page, setPage] = useState(1);
+  const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
   const [message, setMessage] = useState("");
   const filterKeys = ["status", "path", "course", "tutorId", "year"] as const;
   const filtered = students
     .filter(
       (s) =>
-        s.name.toLowerCase().includes(query.toLowerCase()) &&
+        [s.name, s.id, s.email, s.city].some(value => value.toLowerCase().includes(query.trim().toLowerCase())) &&
         filterKeys.every((k) => !filters[k] || s[k] === filters[k]),
     )
     .sort((a, b) => (ascending ? 1 : -1) * a.name.localeCompare(b.name));
@@ -49,23 +51,10 @@ export function StudentsModule({
   const student = students.find((s) => s.id === selected);
   const tutorName = (id: string) =>
     data.tutors.find((t) => t.id === id)?.name ?? "Da assegnare";
-  const add = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const f = new FormData(event.currentTarget);
-    const name = String(f.get("name")).trim();
-    if (name.length < 3) return;
+  const add = (details: StudentDetails) => {
     const s: Student = {
       id: `ST-${crypto.randomUUID().slice(0, 8)}`,
-      name,
-      email: String(f.get("email")),
-      phone: "+39 000 000 0000",
-      city: "Roma",
-      region: "Lazio",
-      age: 18,
-      status: "In iscrizione",
-      path: String(f.get("path")),
-      course: String(f.get("course")),
-      year: "2026/27",
+      ...details,
       tutorId: "TU-1",
       progress: 0,
       documentReady: false,
@@ -77,14 +66,16 @@ export function StudentsModule({
       setAdding(false);
       setSelected(s.id);
       setMessage("Studente demo aggiunto alla sessione.");
+      return true;
     }
+    return false;
   };
   if (student)
     return (
       <div className="cp-stack">
-        <button className="cp-link" onClick={() => setSelected(null)}>
+        {!profile && <button className="cp-link" onClick={() => { setSelected(null); setEditing(false); setMessage(""); }}>
           <ArrowLeft size={16} /> Torna agli studenti
-        </button>
+        </button>}
         <div className="cp-profile-head">
           <div className="cp-avatar large">
             {student.name
@@ -101,6 +92,14 @@ export function StudentsModule({
           <Badge>{student.status}</Badge>
         </div>
         {message && <p role="status">{message}</p>}
+        {canManageStudents(session.role) && <button className="cp-button" onClick={() => setEditing(!editing)}>Modifica studente</button>}
+        {editing && canManageStudents(session.role) && <Panel title="Modifica studente dimostrativo" subtitle="Le modifiche durano fino al ricaricamento.">
+          <StudentForm student={student} onCancel={() => setEditing(false)} onSave={(details) => {
+            const ok = mutate({ type: "update-student", id: student.id, details });
+            if (ok) { setEditing(false); setMessage("Anagrafica demo aggiornata."); }
+            return ok;
+          }} />
+        </Panel>}
         <div className="cp-two">
           <Panel title="Anagrafica e contatti">
             <dl>
@@ -223,7 +222,7 @@ export function StudentsModule({
           <Search size={17} />
           <input
             aria-label="Cerca studenti"
-            placeholder="Cerca nome o cognome…"
+            placeholder="Nome, email, codice o città…"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -245,39 +244,7 @@ export function StudentsModule({
           title="Nuovo studente dimostrativo"
           subtitle="Usa esclusivamente dati inventati."
         >
-          <form className="cp-form" onSubmit={add}>
-            <label>
-              Nome e cognome
-              <input name="name" required minLength={3} maxLength={80} />
-            </label>
-            <label>
-              Email
-              <input name="email" type="email" required />
-            </label>
-            <label>
-              Percorso
-              <select name="path">
-                <option>Diploma</option>
-                <option>Recupero anni</option>
-              </select>
-            </label>
-            <label>
-              Indirizzo
-              <select name="course">
-                <option>Liceo scientifico</option>
-                <option>Informatica</option>
-                <option>Amministrazione e marketing</option>
-              </select>
-            </label>
-            <button className="cp-button primary">Aggiungi alla demo</button>
-            <button
-              type="button"
-              className="cp-button"
-              onClick={() => setAdding(false)}
-            >
-              Annulla
-            </button>
-          </form>
+          <StudentForm onSave={add} onCancel={() => setAdding(false)} />
         </Panel>
       )}
       <div className="cp-filters">
@@ -301,6 +268,7 @@ export function StudentsModule({
           </label>
         ))}
       </div>
+      {(query || Object.values(filters).some(Boolean)) && <button className="cp-button" onClick={() => { setQuery(""); setFilters({}); setPage(1); }}>Azzera ricerca e filtri</button>}
       <Panel
         title="Anagrafica condivisa"
         subtitle={`${filtered.length} studenti demo · ${session.role === "Audit" ? "Perimetro autorizzato: 6 studenti" : "Dati coerenti tra i reparti"}`}
