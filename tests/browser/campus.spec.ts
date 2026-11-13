@@ -309,6 +309,10 @@ for (const viewport of [
             path: testInfo.outputPath(`${account.role.toLowerCase()}-dashboard-table-scroll.png`),
             animations: "disabled",
           });
+          await table.evaluate((element) => {
+            element.scrollLeft = 0;
+          });
+          await expect.poll(() => table.evaluate((element) => element.scrollLeft)).toBe(0);
         } else {
           expect(tableSize.scrollWidth).toBeLessThanOrEqual(tableSize.clientWidth);
         }
