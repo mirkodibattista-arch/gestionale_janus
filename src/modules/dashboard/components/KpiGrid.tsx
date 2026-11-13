@@ -5,14 +5,16 @@ import {
   GraduationCap,
   Users,
   WalletCards,
+  BookOpen,
+  CalendarDays,
 } from "lucide-react";
 import type { Role } from "../../../types/roles";
 import { roleStats } from "../data";
+import { roleValues } from "../demoData";
 
 export function KpiGrid({ role }: { role: Role }) {
   const dashboard = roleStats[role];
-  const numbers =
-    role === "Admin" ? ["248", "18", "€ 42.850", "16"] : ["24", "8", "12", "6"];
+  const numbers = roleValues[role];
   return (
     <div className="kpi-grid">
       {dashboard.items.map((title, i) => (
@@ -24,7 +26,13 @@ export function KpiGrid({ role }: { role: Role }) {
                 [
                   <Users size={16} />,
                   <ClipboardList size={16} />,
-                  <WalletCards size={16} />,
+                  role === "Admin" || role === "Amministrazione" ? (
+                    <WalletCards size={16} />
+                  ) : role === "Studente" ? (
+                    <CalendarDays size={16} />
+                  ) : (
+                    <BookOpen size={16} />
+                  ),
                   <GraduationCap size={16} />,
                 ][i]
               }
@@ -38,9 +46,9 @@ export function KpiGrid({ role }: { role: Role }) {
               ) : (
                 <ArrowUpRight size={14} />
               )}
-              {i === 1 ? "3 in verifica" : "+8,4%"}
+              {i === 1 ? "Il tuo campus" : "Demo"}
             </span>
-            <span>rispetto al mese scorso</span>
+            <span>valore dimostrativo</span>
           </div>
         </article>
       ))}
