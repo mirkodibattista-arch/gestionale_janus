@@ -1,6 +1,6 @@
 import { dashboardSummary } from "./summary";
 import { useState } from "react";
-import { ArrowUpRight, GraduationCap, ArrowRight } from "lucide-react";
+import { ArrowUpRight, GraduationCap, ArrowRight, ArrowLeftRight } from "lucide-react";
 import { portalPath } from "../../routing/portals";
 import type { AuthSession } from "../auth/types";
 import { useCampus } from "../campus/CampusProvider";
@@ -167,7 +167,17 @@ export function CampusOverview({ session }: { session: AuthSession }) {
           </a>
         }
       >
-        <div className="cp-table-scroll">
+        <p className="cp-table-scroll-hint" id="cp-paths-scroll-hint">
+          <ArrowLeftRight aria-hidden="true" size={14} />
+          <span>Scorri lateralmente per tutte le colonne</span>
+        </p>
+        <div
+          className="cp-table-scroll"
+          role="region"
+          aria-label="Percorsi in evidenza"
+          aria-describedby="cp-paths-scroll-hint"
+          tabIndex={0}
+        >
           <table>
             <thead>
               <tr>
