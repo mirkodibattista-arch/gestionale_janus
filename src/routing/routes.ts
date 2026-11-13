@@ -1,4 +1,5 @@
 import { campusModules, type CampusModuleId } from "../modules/registry";
+import type { Portal } from "./portals";
 import type { Role } from "../types/roles";
 
 export const roleModules: Record<Role, readonly CampusModuleId[]> = {
@@ -68,6 +69,9 @@ export const roleModules: Record<Role, readonly CampusModuleId[]> = {
   Studente: [
     "dashboard",
     "profilo",
+    "materie",
+    "avanzamento",
+    "comunicazioni",
     "piano-studi",
     "calendario",
     "documenti",
@@ -80,7 +84,7 @@ export type AppRoute =
   | { page: "home" }
   | { page: "login" }
   | { page: "not-found" }
-  | { page: "campus"; moduleId: string };
+  | { page: "campus"; moduleId: string; portal?: Portal };
 export function parseRoute(hash: string): AppRoute {
   if (
     ["", "#", "#/", "#inizio", "#metodo", "#percorso", "#richiesta"].includes(
@@ -89,10 +93,11 @@ export function parseRoute(hash: string): AppRoute {
   )
     return { page: "home" };
   if (hash === "#/login") return { page: "login" };
-  const campus = /^#\/campus\/([a-z-]+)$/.exec(hash);
-  return campus
-    ? { page: "campus", moduleId: campus[1] }
-    : { page: "not-found" };
+  const campus = /^#\/(campus|azienda|studente)\/([a-z-]+)$/.exec(hash);
+  if (!campus) return { page: "not-found" };
+  return campus[1] === "campus"
+    ? { page: "campus", moduleId: campus[2] }
+    : { page: "campus", moduleId: campus[2], portal: campus[1] as Portal };
 }
 export function isModuleId(value: string): value is CampusModuleId {
   return Object.hasOwn(campusModules, value);

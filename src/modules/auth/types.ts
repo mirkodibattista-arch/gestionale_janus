@@ -3,6 +3,11 @@ import type { Role } from "../../types/roles";
 export type AuthSession = {
   user: { id: string; email: string; displayName: string };
   role: Role;
+  scope?: {
+    studentId?: string;
+    tutorId?: string;
+    auditStudentIds?: readonly string[];
+  };
   mode: "demo";
   expiresAt: number;
 };

@@ -926,3 +926,106 @@
     transition: none !important;
   }
 }
+
+/* Student portal: a simpler shell within the same application. */
+.student-portal {
+  display: block;
+  min-height: 100dvh;
+}
+.student-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--cp-line);
+}
+.student-portal-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--cp-cyan, #22d3ee);
+}
+.student-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--cp-line);
+}
+.student-navigation a,
+.student-portal .mobile-dash-menu a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: inherit;
+  text-decoration: none;
+}
+.student-navigation a[aria-current="page"],
+.student-portal .mobile-dash-menu a[aria-current="page"] {
+  background: rgba(34, 211, 238, 0.12);
+  color: #22d3ee;
+}
+.student-content {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 32px;
+}
+.student-welcome {
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 24px;
+  padding: 32px;
+  background: linear-gradient(
+    120deg,
+    rgba(0, 126, 194, 0.18),
+    rgba(112, 50, 196, 0.15)
+  );
+}
+.student-welcome h2 {
+  font-size: clamp(24px, 4vw, 38px);
+  margin: 14px 0;
+}
+.student-welcome p {
+  margin-bottom: 24px;
+}
+.student-portal .cp-list > div {
+  gap: 20px;
+}
+.student-portal .cp-list > div > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.student-portal .cp-list .cp-progress {
+  min-width: 100px;
+}
+@media (max-width: 760px) {
+  .student-topbar {
+    padding: 16px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .student-portal-label {
+    display: none;
+  }
+  .student-navigation {
+    display: none;
+  }
+  .student-content {
+    padding: 20px 16px;
+  }
+  .student-welcome {
+    padding: 24px;
+  }
+  .student-portal .cp-list > div {
+    flex-wrap: wrap;
+  }
+}
+
+.student-topbar .brand-mark + div div:first-child {
+  color: var(--cp-text);
+}
+.student-navigation a[aria-current="page"],
+.student-portal .mobile-dash-menu a[aria-current="page"] {
+  color: var(--cp-accent);
+}

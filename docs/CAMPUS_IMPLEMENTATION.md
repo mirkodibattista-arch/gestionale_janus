@@ -1,3 +1,5 @@
+> Per la struttura attuale a due portali, vedere [ADR-001](architecture/ADR-001-dual-portals.md). Le verifiche qui sotto si riferiscono alla prima revisione del campus.
+
 # Prima versione navigabile JANUS Digital Campus
 
 ## Analisi iniziale

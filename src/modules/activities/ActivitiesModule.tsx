@@ -21,7 +21,7 @@ export function ActivitiesModule({ session }: { session: AuthSession }) {
     const activity: Activity = {
       id: crypto.randomUUID(),
       studentId: s.id,
-      tutorId: session.role === "Tutor" ? "TU-1" : s.tutorId,
+      tutorId: session.role === "Tutor" ? session.scope?.tutorId ?? "" : s.tutorId,
       type: String(f.get("type")) as Activity["type"],
       date: String(f.get("date")),
       minutes: Number(f.get("minutes")),

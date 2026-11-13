@@ -40,11 +40,33 @@ export type Operator = {
   active: boolean;
   created: string;
 };
+export type Communication = {
+  id: string;
+  studentId: string;
+  audience: "studente" | "interno";
+  title: string;
+  body: string;
+  sender: string;
+  date: string;
+};
 export type CampusData = {
+  communications: Communication[];
   students: Student[];
   tutors: Tutor[];
   activities: Activity[];
   operators: Operator[];
 };
 
-export type StudentDetails = Pick<Student, "name" | "email" | "phone" | "city" | "region" | "age" | "status" | "path" | "course" | "year">;
+export type StudentDetails = Pick<
+  Student,
+  | "name"
+  | "email"
+  | "phone"
+  | "city"
+  | "region"
+  | "age"
+  | "status"
+  | "path"
+  | "course"
+  | "year"
+>;

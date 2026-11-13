@@ -62,6 +62,35 @@ export function createFixtures(): CampusData {
   }));
   return {
     students,
+    communications: students.flatMap((s) => [
+      {
+        id: `${s.id}-C1`,
+        studentId: s.id,
+        audience: "studente" as const,
+        title: "Benvenuto nel tuo percorso",
+        body: `Il tuo percorso ${s.course} è consultabile nell’area personale.`,
+        sender: "Segreteria JANUS",
+        date: "2026-11-13",
+      },
+      {
+        id: `${s.id}-C2`,
+        studentId: s.id,
+        audience: "studente" as const,
+        title: "Calendario lezioni demo",
+        body: "Consulta il calendario per le prossime lezioni dimostrative.",
+        sender: "Didattica JANUS",
+        date: "2026-11-13",
+      },
+      {
+        id: `${s.id}-INT`,
+        studentId: s.id,
+        audience: "interno" as const,
+        title: "Nota interna demo",
+        body: "Promemoria operativo riservato agli operatori.",
+        sender: "Operatore demo",
+        date: "2026-11-13",
+      },
+    ]),
     tutors: [
       {
         id: "TU-1",

@@ -28,7 +28,7 @@ export function CampusPage({
       <div className="cp-page-head">
         <div>
           <span className="cp-eyebrow">
-            WORKSPACE / {session.role.toUpperCase()}
+            PORTALE AZIENDALE / {session.role.toUpperCase()}
           </span>
           <h1>
             {moduleId === "dashboard"

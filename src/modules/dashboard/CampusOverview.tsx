@@ -7,6 +7,7 @@ import {
   FileCheck2,
   ArrowRight,
 } from "lucide-react";
+import { portalHash } from "../../routing/portals";
 import type { AuthSession } from "../auth/types";
 import { useCampus } from "../campus/CampusProvider";
 import { visibleStudents } from "../campus/permissions";
@@ -15,11 +16,10 @@ import { canAccessModule } from "../../routing/routes";
 export function CampusOverview({ session }: { session: AuthSession }) {
   const { data } = useCampus();
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
-  const destination = canAccessModule(session.role, "studenti")
-    ? "#/campus/studenti"
-    : session.role === "Studente"
-      ? "#/campus/profilo"
-      : "#/campus/amministrazione";
+  const destination = portalHash(
+    session.role,
+    canAccessModule(session.role, "studenti") ? "studenti" : "amministrazione",
+  );
   const students = visibleStudents(data, session);
   const ids = new Set(students.map((s) => s.id));
   const activities = data.activities.filter((a) => ids.has(a.studentId));
@@ -72,34 +72,7 @@ export function CampusOverview({ session }: { session: AuthSession }) {
             "Saldo a zero",
           ],
         ] as const)
-      : session.role === "Studente"
-        ? ([
-            [
-              "Il tuo avanzamento",
-              `${students[0]?.progress ?? 0}%`,
-              GraduationCap,
-              "Percorso personale",
-            ],
-            [
-              "Tutor assegnati",
-              new Set(students.map((s) => s.tutorId)).size,
-              Users,
-              "Al tuo fianco",
-            ],
-            [
-              "Attività sul percorso",
-              activities.length,
-              Activity,
-              "Contatti e lezioni",
-            ],
-            [
-              "Documenti completi",
-              students.filter((s) => s.documentReady).length,
-              FileCheck2,
-              "Pratica personale",
-            ],
-          ] as const)
-        : baseStats;
+      : baseStats;
   const months = ["Giu", "Lug", "Ago", "Set", "Ott", "Nov"];
   const bars = months.map(
     (_, i) =>
@@ -153,7 +126,7 @@ export function CampusOverview({ session }: { session: AuthSession }) {
           subtitle="Iscrizioni per mese · giugno–novembre 2026"
           action={
             canAccessModule(session.role, "statistiche") ? (
-              <a className="cp-link" href="#/campus/statistiche">
+              <a className="cp-link" href="#/azienda/statistiche">
                 Analytics <ArrowUpRight size={14} />
               </a>
             ) : undefined
@@ -189,7 +162,7 @@ export function CampusOverview({ session }: { session: AuthSession }) {
               <a
                 className="cp-link"
                 aria-label="Apri registro attività"
-                href="#/campus/attivita"
+                href="#/azienda/attivita"
               >
                 <ArrowUpRight size={16} />
               </a>

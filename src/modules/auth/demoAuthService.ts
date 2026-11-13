@@ -43,6 +43,7 @@ export function createDemoAuthService(
           displayName: account.displayName,
         },
         role: account.role,
+        scope: account.scope,
         mode: "demo",
         expiresAt: saved.issuedAt + DEMO_SESSION_DURATION,
       };
