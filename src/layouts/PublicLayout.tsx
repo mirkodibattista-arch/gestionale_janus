@@ -12,7 +12,7 @@ export function PublicLayout({ children, onDashboard }: PublicLayoutProps) {
         <span className="demo-separator">·</span> Usa solo dati fittizi durante
         la prova{" "}
         <button onClick={() => onDashboard()}>
-          Anteprima gestionale <ArrowRight size={13} />
+          Accedi al campus <ArrowRight size={13} />
         </button>
       </div>
       <header className="site-header">

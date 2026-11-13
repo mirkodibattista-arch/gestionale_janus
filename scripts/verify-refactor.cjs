@@ -1,4 +1,4 @@
-/* Regressione di questa estrazione: confronta il markup con il commit iniziale.
+/* Regressione della pagina pubblica (dashboard evolute in verify-auth.cjs): confronta il markup con il commit iniziale.
  * Usa render statico e un client Supabase fittizio: nessun servizio esterno.
  * Non sostituisce una verifica interattiva nel browser.
  */
@@ -78,8 +78,19 @@ const oldApp = load(
   path.join(root, "src/App.tsx"),
   oldSource + "\nexport { DashboardDemo };",
 );
-const newApp = load(path.join(root, "src/App.tsx"));
-const { DashboardPage } = load(path.join(root, "src/pages/DashboardPage.tsx"));
+const { OrientationPage } = load(
+  path.join(root, "src/pages/OrientationPage.tsx"),
+);
+const { useOrientationForm } = load(
+  path.join(root, "src/modules/orientation/hooks/useOrientationForm.ts"),
+);
+function CurrentOrientation() {
+  reactShim.useState("form"); // stato di navigazione della baseline
+  return React.createElement(OrientationPage, {
+    controller: useOrientationForm(),
+    onDashboard() {},
+  });
+}
 function render(Component, state, props = {}) {
   states = state;
   cursor = 0;
@@ -120,27 +131,14 @@ for (const [step, busy, error, success] of [
 ]) {
   const state = ["form", step, form, busy, error, success];
   assertMarkup(
-    render(newApp.default, state),
+    render(CurrentOrientation, state).replace(
+      "Accedi al campus",
+      "Anteprima gestionale",
+    ),
     render(oldApp.default, state),
     `Public form: step ${step}, busy=${busy}, error=${error}, success=${success}`,
   );
   checks += 1;
-}
-for (const role of [
-  "Admin",
-  "Supervisore",
-  "Segreteria",
-  "Amministrazione",
-  "Didattica",
-]) {
-  for (const menuOpen of [false, true]) {
-    assertMarkup(
-      render(DashboardPage, [role, menuOpen], { onExit() {} }),
-      render(oldApp.DashboardDemo, [role, menuOpen], { onExit() {} }),
-      `Dashboard ${role}, menu=${menuOpen}`,
-    );
-    checks += 1;
-  }
 }
 assert.equal(networkCalls, 0);
 console.log(

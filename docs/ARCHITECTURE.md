@@ -1,3 +1,5 @@
+> Requisito permanente aggiornato il 13 novembre 2026: [ADR-001 — Un’applicazione, due portali](architecture/ADR-001-dual-portals.md). Questa decisione prevale sui riferimenti storici a un’unica interfaccia dashboard.
+
 # Architettura JANUS Digital Campus
 
 ## Punto di partenza su main
@@ -57,3 +59,11 @@ npm run verify:refactor
 `build` esegue TypeScript strict e la build Vite. `verify:refactor` usa React server rendering e confronta il markup con il commit iniziale: tre passi del form, stati di invio/errore/successo e cinque dashboard con menu mobile chiuso/aperto (16 scenari). Il client Supabase è sostituito da uno stub che blocca ogni invocazione. La verifica richiede la storia Git con il commit iniziale; non richiede credenziali o una connessione al database. Non è una prova interattiva nel browser o un test Windows.
 
 Il form di orientamento reale già presente nel prototipo conserva il suo invio alla Edge Function: le prove di questa PR non inviano il form e non leggono dati del database. Per lo sviluppo usare sempre recapiti fittizi.
+
+## Evoluzione dopo la prima PR
+
+La PR successiva sul branch `feat/janus-demo-login` aggiunge login demo, sette ruoli e navigazione per account. La fotografia e il confronto con main riportati sopra descrivono il punto di partenza della prima PR; non rappresentano più lo stato completo dell'app. Il nuovo stato e i limiti del login sono documentati in [DEMO_LOGIN.md](DEMO_LOGIN.md). La verifica della dashboard è ora affidata ai test Auth/UI e la regressione del form conserva sei scenari.
+
+## Evoluzione Digital Campus
+
+Le route attive e lo stato dell'implementazione successiva sono descritti in [CAMPUS_IMPLEMENTATION.md](CAMPUS_IMPLEMENTATION.md). Le descrizioni sopra fotografano il refactor storico; il campus aggiunge ora gli otto ruoli, il nuovo design e i primi flussi operativi demo.
