@@ -222,7 +222,12 @@ for (const viewport of [
     await expect(page.locator("#login-email")).toBeVisible();
     await expect(page.locator("#login-password")).toBeVisible();
     await expect(page.locator(".auth-card form button[type=submit]")).toBeEnabled();
-    await page.screenshot({ path: testInfo.outputPath("login.png"), fullPage: true });
+    await expect(page.locator(".auth-card")).toHaveCSS("opacity", "1");
+    await page.screenshot({
+      path: testInfo.outputPath("login.png"),
+      fullPage: true,
+      animations: "disabled",
+    });
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(pageErrors).toEqual([]);
@@ -263,7 +268,38 @@ for (const viewport of [
       await expect(page.locator(".account-context b")).toHaveText(account.role);
       await expect(page.locator(`[data-portal="${account.portal}"]`)).toBeVisible();
       await expect(page.locator(".dashboard-shell")).toBeVisible();
-      await page.screenshot({ path: testInfo.outputPath(`${account.role.toLowerCase()}-dashboard.png`), fullPage: true });
+      await page.screenshot({
+        path: testInfo.outputPath(`${account.role.toLowerCase()}-dashboard.png`),
+        fullPage: true,
+      });
+
+      if (account.portal !== "studente") {
+        const table = page.getByRole("region", { name: "Percorsi in evidenza" });
+        const headers = ["Studente", "Indirizzo", "Tutor", "Progresso", "Stato"];
+        await expect(table.getByRole("columnheader")).toHaveText(headers);
+        await expect(table).toHaveAttribute("tabindex", "0");
+
+        const tableSize = await table.evaluate((element) => ({
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+        }));
+        if (viewport.width < 760) {
+          expect(tableSize.scrollWidth).toBeGreaterThan(tableSize.clientWidth);
+          await expect(page.locator("#cp-paths-scroll-hint")).toBeVisible();
+          await table.evaluate((element) => {
+            element.scrollLeft = element.scrollWidth;
+          });
+          await expect.poll(() => table.evaluate((element) => element.scrollLeft))
+            .toBeGreaterThan(0);
+          expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+          await table.screenshot({
+            path: testInfo.outputPath(`${account.role.toLowerCase()}-dashboard-table-scroll.png`),
+            animations: "disabled",
+          });
+        } else {
+          expect(tableSize.scrollWidth).toBeLessThanOrEqual(tableSize.clientWidth);
+        }
+      }
 
       if (viewport.width < 760) {
         const menuButton = page.getByRole("button", { name: "Apri menu" });
@@ -289,7 +325,12 @@ for (const viewport of [
       await logout.click();
       await expect(page).toHaveURL(/\/login$/);
       await expect(page.locator("#login-email")).toBeVisible();
-      await page.screenshot({ path: testInfo.outputPath(`${account.role.toLowerCase()}-logout.png`), fullPage: true });
+      await expect(page.locator(".auth-card")).toHaveCSS("opacity", "1");
+      await page.screenshot({
+        path: testInfo.outputPath(`${account.role.toLowerCase()}-logout.png`),
+        fullPage: true,
+        animations: "disabled",
+      });
 
       expect(pageErrors).toEqual([]);
       expect(consoleErrors).toEqual([]);
