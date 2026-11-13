@@ -476,7 +476,59 @@
   color: #19815f;
 }
 .cp-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #668fca #142033;
+}
+.cp-table-scroll:focus-visible {
+  outline: 2px solid #78a9ff;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.cp-table-scroll table {
+  min-width: 800px;
+}
+.cp-table-scroll th,
+.cp-table-scroll td {
+  white-space: nowrap;
+}
+.cp-table-scroll th:nth-child(1),
+.cp-table-scroll td:nth-child(1) {
+  min-width: 180px;
+}
+.cp-table-scroll th:nth-child(2),
+.cp-table-scroll td:nth-child(2) {
+  min-width: 210px;
+}
+.cp-table-scroll th:nth-child(3),
+.cp-table-scroll td:nth-child(3) {
+  min-width: 160px;
+}
+.cp-table-scroll th:nth-child(4),
+.cp-table-scroll td:nth-child(4) {
+  min-width: 120px;
+}
+.cp-table-scroll th:nth-child(5),
+.cp-table-scroll td:nth-child(5) {
+  min-width: 130px;
+}
+.cp-table-scroll-hint {
+  display: none;
+}
+@media (max-width: 760px) {
+  .cp-table-scroll-hint {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    margin: 0 0 8px;
+    color: var(--cp-muted);
+    font-size: 10px;
+  }
 }
 .campus-app table {
   width: 100%;
