@@ -3,6 +3,9 @@ import { createClient } from "npm:@supabase/supabase-js@2.95.0";
 const allowedOrigins = new Set([
   "https://istitutojanus.it",
   "https://www.istitutojanus.it",
+  "https://gestionale-janus.pages.dev",
+  "https://feat-janus-public-home-login.gestionale-janus.pages.dev",
+  "https://7299938a.gestionale-janus.pages.dev",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ]);

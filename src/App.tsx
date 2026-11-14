@@ -1,18 +1,79 @@
-import { useState } from "react";
-import { useOrientationForm } from "./modules/orientation/hooks/useOrientationForm";
-import { DashboardPage } from "./pages/DashboardPage";
 import { OrientationPage } from "./pages/OrientationPage";
+import { useOrientationForm } from "./modules/orientation/hooks/useOrientationForm";
+import { useEffect } from "react";
+import { StudentPortalPage } from "./modules/student-portal/StudentPortalPage";
+import { portalForRole, portalPath } from "./routing/portals";
+import { AuthProvider, useAuth } from "./modules/auth/AuthProvider";
+import { CampusProvider } from "./modules/campus/CampusProvider";
+import { CampusPage } from "./pages/CampusPage";
+import { AccessDeniedPage } from "./pages/AccessDeniedPage";
 
-export default function App() {
-  const [screen, setScreen] = useState<"form" | "dashboard">("form");
+import { LoginPage } from "./pages/LoginPage";
+
+import { canAccessModule, isModuleId, navigate } from "./routing/routes";
+import { useAppRoute } from "./routing/useAppRoute";
+
+function PortalRedirect({ to }: { to: string }) {
+  useEffect(() => {
+    navigate(to, { replace: true });
+  }, [to]);
+  return null;
+}
+function AppRoutes() {
+  const route = useAppRoute();
+  const { session } = useAuth();
   const orientationForm = useOrientationForm();
-
-  if (screen === "dashboard")
-    return <DashboardPage onExit={() => setScreen("form")} />;
+  if (route.page === "home" || route.page === "orientation")
+    return (
+      <OrientationPage
+        onDashboard={() => navigate("/login")}
+        controller={orientationForm}
+        formOnly={route.page === "orientation"}
+      />
+    );
+  if (route.page === "login")
+    return session ? (
+      <PortalRedirect to={portalPath(session.role)} />
+    ) : (
+      <LoginPage />
+    );
+  if (route.page === "not-found") return <AccessDeniedPage notFound />;
+  // La verifica precede il rendering di qualsiasi vista gestionale.
+  if (!session)
+    return (
+      <LoginPage notice="Accedi per aprire il campus. Se la sessione è scaduta, inserisci di nuovo le credenziali demo." />
+    );
+  if (!isModuleId(route.moduleId)) return <AccessDeniedPage notFound />;
+  if (!canAccessModule(session.role, route.moduleId))
+    return <AccessDeniedPage />;
+  if (route.portal && route.portal !== portalForRole(session.role))
+    return <AccessDeniedPage />;
+  if (!route.portal)
+    return <PortalRedirect to={portalPath(session.role, route.moduleId)} />;
+  if (window.location.hash.startsWith("#/"))
+    return <PortalRedirect to={portalPath(session.role, route.moduleId)} />;
+  if (session.role === "Studente")
+    return (
+      <StudentPortalPage
+        key={session.user.id}
+        session={session}
+        moduleId={route.moduleId}
+      />
+    );
   return (
-    <OrientationPage
-      onDashboard={() => setScreen("dashboard")}
-      controller={orientationForm}
+    <CampusPage
+      key={session.user.id}
+      moduleId={route.moduleId}
+      session={session}
     />
+  );
+}
+export default function App() {
+  return (
+    <AuthProvider>
+      <CampusProvider>
+        <AppRoutes />
+      </CampusProvider>
+    </AuthProvider>
   );
 }

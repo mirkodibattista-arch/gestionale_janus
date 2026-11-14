@@ -4,6 +4,10 @@ export const roleStats: Record<
   Role,
   { intro: string; items: [string, string, string, string] }
 > = {
+  Audit: {
+    intro: "Consultazione delle informazioni autorizzate.",
+    items: ["Studenti autorizzati", "Attività", "Tutor", "Report"],
+  },
   Admin: {
     intro: "Panoramica operativa dell’intero gestionale.",
     items: [
@@ -47,6 +51,25 @@ export const roleStats: Record<
       "Tutor disponibili",
       "Richieste materie",
       "Esami programmati",
+    ],
+  },
+  Tutor: {
+    intro: "Lezioni, materiali e studenti assegnati al tuo account demo.",
+    items: [
+      "Studenti assegnati",
+      "Lezioni questa settimana",
+      "Valutazioni da inserire",
+      "Ore di tutoraggio",
+    ],
+  },
+  Studente: {
+    intro:
+      "Il tuo percorso, le prossime lezioni e i traguardi verso il diploma.",
+    items: [
+      "Progresso formativo",
+      "Materie completate",
+      "Prossima lezione",
+      "Obiettivo diploma",
     ],
   },
 };

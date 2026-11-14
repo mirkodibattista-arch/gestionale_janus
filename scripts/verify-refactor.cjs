@@ -1,8 +1,9 @@
-/* Regressione di questa estrazione: confronta il markup con il commit iniziale.
+/* Regressione dei campi e stati del form pubblico (dashboard evolute in verify-auth.cjs): confronta il markup con il commit iniziale.
  * Usa render statico e un client Supabase fittizio: nessun servizio esterno.
  * Non sostituisce una verifica interattiva nel browser.
  */
 const assert = require("node:assert/strict");
+const { JSDOM } = require("jsdom");
 const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -78,8 +79,19 @@ const oldApp = load(
   path.join(root, "src/App.tsx"),
   oldSource + "\nexport { DashboardDemo };",
 );
-const newApp = load(path.join(root, "src/App.tsx"));
-const { DashboardPage } = load(path.join(root, "src/pages/DashboardPage.tsx"));
+const { OrientationPage } = load(
+  path.join(root, "src/pages/OrientationPage.tsx"),
+);
+const { useOrientationForm } = load(
+  path.join(root, "src/modules/orientation/hooks/useOrientationForm.ts"),
+);
+function CurrentOrientation() {
+  reactShim.useState("form"); // stato di navigazione della baseline
+  return React.createElement(OrientationPage, {
+    controller: useOrientationForm(),
+    onDashboard() {},
+  });
+}
 function render(Component, state, props = {}) {
   states = state;
   cursor = 0;
@@ -120,27 +132,14 @@ for (const [step, busy, error, success] of [
 ]) {
   const state = ["form", step, form, busy, error, success];
   assertMarkup(
-    render(newApp.default, state),
-    render(oldApp.default, state),
+    JSDOM.fragment(render(CurrentOrientation, state)).querySelector(
+      ".form-section",
+    ).outerHTML,
+    JSDOM.fragment(render(oldApp.default, state)).querySelector(".form-section")
+      .outerHTML,
     `Public form: step ${step}, busy=${busy}, error=${error}, success=${success}`,
   );
   checks += 1;
-}
-for (const role of [
-  "Admin",
-  "Supervisore",
-  "Segreteria",
-  "Amministrazione",
-  "Didattica",
-]) {
-  for (const menuOpen of [false, true]) {
-    assertMarkup(
-      render(DashboardPage, [role, menuOpen], { onExit() {} }),
-      render(oldApp.DashboardDemo, [role, menuOpen], { onExit() {} }),
-      `Dashboard ${role}, menu=${menuOpen}`,
-    );
-    checks += 1;
-  }
 }
 assert.equal(networkCalls, 0);
 console.log(

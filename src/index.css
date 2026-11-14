@@ -9,3 +9,36 @@
 @media(max-width:900px){.hero-section{padding-left:35px;padding-right:35px;grid-template-columns:1fr .9fr}.hero-copy h1{font-size:47px}.visual-card{width:235px}.floating-tutor{right:-1px}.trust-strip{margin-left:25px;margin-right:25px;gap:20px;padding-left:20px;padding-right:20px}.trust-strip>div{min-width:155px}.form-section{margin-left:25px;margin-right:25px;padding:43px 35px;gap:40px}.dashboard-shell{grid-template-columns:190px minmax(0,1fr)}.dash-sidebar{padding-left:12px;padding-right:12px}.dashboard-content{padding-left:22px;padding-right:22px}.dash-topbar{padding:0 22px}.kpi-card{padding:13px 11px}.kpi-card>strong{font-size:20px}}
 @media(max-width:680px){body{min-width:340px}.demo-banner{justify-content:flex-start;padding:0 15px;font-size:8px}.demo-banner button{display:none}.site-header{height:65px;padding:0 18px}.site-nav,.header-cta{display:none}.mobile-menu-btn{display:block}.hero-section{min-height:unset;display:flex;flex-direction:column;padding:58px 22px 34px;gap:2px}.hero-copy h1{font-size:44px;margin-top:18px}.hero-description{font-size:12px}.hero-actions{gap:14px;margin-top:22px}.primary-link{min-height:43px;padding:0 14px;font-size:10px}.secondary-link{font-size:9px}.hero-proof{margin-top:26px}.hero-visual{min-height:300px;margin-top:7px}.visual-card{top:47%;width:236px;min-height:228px;padding:17px}.progress-title{margin-top:14px;font-size:19px}.progress-track{margin-top:17px}.floating-tutor{top:29px;right:1px}.floating-flex{bottom:22px;left:1px}.orbit{width:260px;height:164px}.orbit-two{width:220px;height:205px}.trust-strip{display:grid;grid-template-columns:1fr 1fr;gap:17px 12px;margin:0 18px 48px;padding:17px}.trust-strip>div{min-width:0;grid-template-columns:29px auto;column-gap:7px}.trust-icon{width:28px;height:28px}.trust-strip b{font-size:9px}.trust-strip small{font-size:7px}.trust-strip>a{grid-column:1/-1;margin:0 0 0 3px}.form-section{display:flex;flex-direction:column;gap:28px;margin:0 13px 47px;padding:32px 18px 19px;border-radius:20px}.form-intro h2{font-size:32px;margin:16px 0 10px}.form-intro>p{max-width:100%;font-size:10px}.form-assurance{margin-top:15px}.form-note{margin-top:9px}.form-card{padding:21px 16px 0}.form-card-top h3{font-size:16px}.steps-row{gap:6px;margin:20px 0 18px}.step-item{gap:4px}.step-item b{font-size:7px}.step-item span{width:20px;height:20px}.field-grid{gap:8px}.field-wrap{font-size:8px}.field{min-height:39px;font-size:9px;padding:0 9px}.form-fields{gap:11px}.form-card-footer{margin:17px -16px 0;padding:11px 16px}.site-footer{padding:0 17px 22px;gap:8px}.site-footer>span{font-size:8px}.site-footer .brand-mark{width:26px;height:26px}.dashboard-shell{display:block}.dash-sidebar{display:none}.dash-topbar{height:58px;padding:0 13px;gap:10px}.mobile-menu{display:grid;place-items:center;width:32px;height:32px;border:1px solid #e9edf3;border-radius:9px;background:#fff;color:#53647a}.dash-search{width:min(42vw,205px);padding:8px}.dash-search kbd,.top-date{display:none}.mobile-dash-menu{display:block;padding:10px 15px;background:#fff;border-bottom:1px solid #e9edf3;color:#60718b;font-size:9px}.dashboard-content{padding:16px 12px}.dash-demo-alert{font-size:8px;gap:5px;padding:0 7px}.dash-demo-alert .alert-dot{display:none}.dash-welcome{align-items:flex-start;gap:10px;margin:20px 0 15px}.dash-welcome h1{font-size:20px}.dash-welcome p{font-size:8px}.role-picker{min-width:112px;padding:7px 23px 7px 8px}.role-picker>svg{right:7px;bottom:8px}.kpi-grid{grid-template-columns:1fr 1fr;gap:8px}.kpi-card{padding:11px}.kpi-card>strong{font-size:20px;margin-top:8px}.kpi-top{font-size:8px}.kpi-foot{font-size:6px}.dash-panels{grid-template-columns:1fr;gap:9px;margin-top:10px}.panel{padding:14px}.chart-area{height:132px}.bar-wrap{height:106px}.bar{width:10px}.activity-row{margin-top:13px}.tasks-panel{margin-top:10px}.dash-footer{font-size:6px;gap:10px}.site-footer .brand-mark:before{width:18px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Public home keeps the original orientation identity and adds campus access. */
+.header-campus-cta { display: inline-flex; align-items: center; gap: 8px; padding: 12px 14px; border: 1px solid #315f94; border-radius: 10px; color: #184d7c; font-size: 10px; font-weight: 750; background: #edf8ff; cursor: pointer; }
+.public-campus-access { max-width: 1110px; margin: 0 auto 50px; padding: 28px; border: 1px solid #dce8f5; border-radius: 24px; background: linear-gradient(120deg, #f7fbff, #f3f2ff); }
+.public-campus-copy { max-width: 650px; margin-bottom: 24px; }
+.public-campus-copy h2 { margin: 12px 0; font-size: 27px; color: #132a49; letter-spacing: -.025em; }
+.public-campus-copy p, .public-access-options p { color: #566b83; line-height: 1.7; font-size: 13px; }
+.public-access-options { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.public-access-options > div { border: 1px solid #e0e8f2; border-radius: 18px; padding: 24px; background: white; }
+.public-access-options > div > svg { color: #2877bc; }
+.public-access-options h3 { margin: 14px 0 10px; font-size: 19px; color: #183352; }
+.public-access-options p { margin-bottom: 20px; }
+.public-access-options .public-campus-option { background: #101e36; border-color: #273b61; }
+.public-campus-option h3 { color: #edf6ff; }
+.public-campus-option p { color: #b6c7dc; }
+.public-campus-cta { display: flex; align-items: center; gap: 12px; border-radius: 12px; padding: 16px; background: linear-gradient(110deg, #087fbd, #4754c8); color: white; font-size: 12px; line-height: 1.6; font-weight: 800; }
+.public-staff-link { display: inline-block; margin-top: 16px; color: #86d7f7; font-size: 12px; }
+.public-orientation-note { max-width: 1110px; margin: 35px auto 0; padding: 0 28px; color: #284261; }
+.public-orientation-note h1 { font-size: 30px; margin-bottom: 12px; }
+.public-orientation-note p { line-height: 1.7; margin-bottom: 10px; }
+.public-orientation-note a { color: #2169a5; }
+.public-mobile-nav { display: none; }
+.page-shell :focus-visible { outline: 3px solid #277bc1; outline-offset: 4px; }
+@media (max-width: 1000px) { .site-header .site-nav { display: none; } }
+@media (max-width: 760px) {
+  .header-campus-cta { display: none; }
+  .public-mobile-nav { display: grid; gap: 14px; padding: 20px; border-bottom: 1px solid #dce8f5; background: white; color: #173c64; font-size: 13px; }
+  .public-campus-access { margin: 0 16px 30px; padding: 20px; }
+  .public-campus-copy h2 { font-size: 24px; }
+  .public-access-options { grid-template-columns: 1fr; }
+  .public-access-options > div { padding: 20px; }
+  .public-orientation-note { padding: 0 20px; }
+}

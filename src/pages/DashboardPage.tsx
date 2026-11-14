@@ -1,23 +1,21 @@
-import { useState } from "react";
 import { DashboardLayout } from "../layouts/DashboardLayout";
 import { DashboardWelcome } from "../modules/dashboard/components/DashboardWelcome";
 import { EnrollmentChart } from "../modules/dashboard/components/EnrollmentChart";
 import { KpiGrid } from "../modules/dashboard/components/KpiGrid";
 import { PriorityTasks } from "../modules/dashboard/components/PriorityTasks";
 import { RecentActivity } from "../modules/dashboard/components/RecentActivity";
-import type { Role } from "../types/roles";
+import type { AuthSession } from "../modules/auth/types";
 
-export function DashboardPage({ onExit }: { onExit: () => void }) {
-  const [role, setRole] = useState<Role>("Admin");
+export function DashboardPage({ session }: { session: AuthSession }) {
   return (
-    <DashboardLayout>
-      <DashboardWelcome role={role} onRoleChange={setRole} onExit={onExit} />
-      <KpiGrid role={role} />
+    <DashboardLayout session={session}>
+      <DashboardWelcome session={session} />
+      <KpiGrid role={session.role} />
       <div className="dash-panels">
-        <EnrollmentChart />
-        <RecentActivity />
+        <EnrollmentChart role={session.role} />
+        <RecentActivity role={session.role} />
       </div>
-      <PriorityTasks />
+      <PriorityTasks role={session.role} />
     </DashboardLayout>
   );
 }
