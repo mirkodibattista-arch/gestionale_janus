@@ -254,13 +254,12 @@ async function submit(selector) {
   assert.equal(backendCalls, 0);
   await act(async () => root.unmount());
   dom.window.close();
-  // Ensure transport/backend contracts have not changed relative to main.
+  // Keep transport contracts identical to main; allow only the approved CORS additions.
   const { execFileSync } = require("node:child_process");
   for (const file of [
     "src/modules/orientation/hooks/useOrientationForm.ts",
     "src/modules/orientation/components/ContactRequestForm.tsx",
     "src/lib/supabase.ts",
-    "supabase/functions/richiesta-contatto/index.ts",
   ]) {
     assert.equal(
       fs.readFileSync(path.resolve(__dirname, "..", file), "utf8"),
@@ -270,6 +269,88 @@ async function submit(selector) {
       }),
     );
   }
+  const edgeFile = "supabase/functions/richiesta-contatto/index.ts";
+  const edgeSource = fs.readFileSync(path.resolve(__dirname, "..", edgeFile), "utf8");
+  const edgeReference = execFileSync("git", ["show", `09b5e9c:${edgeFile}`], {
+    cwd: path.resolve(__dirname, ".."),
+    encoding: "utf8",
+  });
+  const cloudflareOrigins = [
+    "https://gestionale-janus.pages.dev",
+    "https://feat-janus-public-home-login.gestionale-janus.pages.dev",
+    "https://7299938a.gestionale-janus.pages.dev",
+  ];
+  const corsAnchor = '  "https://www.istitutojanus.it",\n';
+  assert.equal(edgeReference.split(corsAnchor).length, 2, "Unique CORS anchor required");
+  const expectedEdgeSource = edgeReference.replace(
+    corsAnchor,
+    corsAnchor + cloudflareOrigins.map((origin) => `  "${origin}",\n`).join(""),
+  );
+  assert.equal(
+    edgeSource,
+    expectedEdgeSource,
+    "Only the three approved CORS additions may differ from the reference",
+  );
+
+  // Run the actual handler in memory, with the SDK and network blocked.
+  const { runInNewContext } = require("node:vm");
+  let edgeHandler;
+  runInNewContext(
+    ts.transpileModule(edgeSource, {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2022,
+      },
+    }).outputText,
+    {
+      exports: {},
+      require(id) {
+        assert.equal(id, "npm:@supabase/supabase-js@2.95.0");
+        return {
+          createClient() {
+            throw Error("No database access permitted in CORS tests");
+          },
+        };
+      },
+      Deno: { serve(handler) { edgeHandler = handler; } },
+      Headers,
+      Response,
+      fetch() { throw Error("No network permitted in CORS tests"); },
+    },
+    { filename: edgeFile },
+  );
+  assert.equal(typeof edgeHandler, "function");
+  const previousOrigins = [
+    "https://istitutojanus.it",
+    "https://www.istitutojanus.it",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+  ];
+  for (const origin of [...previousOrigins, ...cloudflareOrigins]) {
+    const response = await edgeHandler({ method: "OPTIONS", headers: new Headers({ origin }) });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("access-control-allow-origin"), origin);
+    assert.equal(response.headers.get("access-control-allow-methods"), "POST, OPTIONS");
+    const post = await edgeHandler({ method: "POST", headers: new Headers({ origin }) });
+    assert.equal(post.status, 415); // Allowed origin; missing JSON content type is still rejected.
+    assert.equal(post.headers.get("access-control-allow-origin"), origin);
+  }
+  for (const origin of [
+    "https://untrusted.example.test",
+    "https://gestionale-janus.pages.dev.evil.example.test",
+    "https://other.gestionale-janus.pages.dev",
+    "https://istitutojanus.it.evil.example.test",
+    "http://localhost:5174",
+    "null",
+    "",
+  ]) {
+    for (const method of ["OPTIONS", "POST"]) {
+      const response = await edgeHandler({ method, headers: new Headers({ origin }) });
+      assert.equal(response.status, 403);
+      assert.equal(response.headers.get("access-control-allow-origin"), null);
+    }
+  }
+  console.log("CORS: 7 origini ammesse, 7 escluse, 28 richieste simulate; resto della funzione identico alla baseline. Zero rete/database.");
   console.log(
     "Home/form pubblico: due percorsi, stato preservato, validazione, errori e conferma, payload invariato, nessuna iscrizione/account automatico. Solo risposte simulate; zero rete.",
   );
