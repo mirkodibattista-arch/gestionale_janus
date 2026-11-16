@@ -1,0 +1,11 @@
+{
+  "name": "janus-p1-local-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node local.mjs"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "0.5.16"
+  }
+}

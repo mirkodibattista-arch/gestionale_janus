@@ -1,0 +1,12 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> test
+> node local.mjs
+
+PASS target acknowledgement gate
+PASS first migration
+PASS second migration
+PASS repeat produces no seed duplicates
+PASS security.sql
+PASS rollback leaves zero synthetic users
+PASS repeat preserves approved permission revocation
