@@ -15,3 +15,5 @@ dist/
 # File temporanei
 .DS_Store
 Thumbs.db
+# Supabase CLI local metadata
+supabase/.temp/

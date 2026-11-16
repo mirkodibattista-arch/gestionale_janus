@@ -1,0 +1,33 @@
+import { PGlite } from '@electric-sql/pglite';
+import fs from 'node:fs';
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('../../../',import.meta.url)).replace(/\/$/,'');
+const db=new PGlite();
+await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS;
+CREATE SCHEMA auth;
+CREATE TABLE auth.users(id uuid PRIMARY KEY,email text,email_confirmed_at timestamptz,is_anonymous boolean NOT NULL DEFAULT false,banned_until timestamptz);
+CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$SELECT coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT (auth.jwt()->>'sub')::uuid$$;
+GRANT USAGE ON SCHEMA auth TO authenticated,anon; GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO authenticated,anon;`);
+// Synthetic test scaffolding, no internal schema dump or remote metadata.
+await db.exec(fs.readFileSync(root+'/supabase/tests/p1/fixtures.sql','utf8'));
+const file=fs.readdirSync(root+'/supabase/migrations').find(x=>x.endsWith('_janus_p1_auth_rbac_audit.sql'));
+const migration=fs.readFileSync(root+'/supabase/migrations/'+file,'utf8');
+try {await db.exec(migration); throw Error('Gate should reject');} catch(e) {if(!e.message.includes('Set janus.approved_project')) throw e; await db.exec('ROLLBACK');console.log('PASS target acknowledgement gate');}
+await db.exec(`SET janus.approved_project='rwaotjfhiyhndlgljuuo';`);
+await db.exec(migration);console.log('PASS first migration');
+const before=await db.query('SELECT count(*)::int n FROM private.eventi_audit');
+await db.exec(migration);console.log('PASS second migration');
+const after=await db.query('SELECT count(*)::int n FROM private.eventi_audit');
+if(before.rows[0].n!==after.rows[0].n) throw Error('Reapply created audit duplicates');
+console.log('PASS repeat produces no seed duplicates');
+try { await db.exec(fs.readFileSync(root+'/supabase/tests/p1/security.sql','utf8')); } catch(e) { console.error(e.message,e.code,e.position,e.where); process.exit(1); }console.log('PASS security.sql');
+const rows=await db.query('SELECT count(*)::int n FROM auth.users');
+if(rows.rows[0].n!==0)throw Error('Tests left users');
+console.log('PASS rollback leaves zero synthetic users');
+await db.exec(`DELETE FROM private.ruoli_permessi WHERE ruolo_id=(SELECT id FROM private.ruoli WHERE codice='tutor');`);
+await db.exec(migration);
+const revoked=await db.query(`SELECT count(*)::int n FROM private.ruoli_permessi WHERE ruolo_id=(SELECT id FROM private.ruoli WHERE codice='tutor')`);
+if(revoked.rows[0].n!==0)throw Error('Reapply restored revoked grants');
+console.log('PASS repeat preserves approved permission revocation');
+await db.close();
