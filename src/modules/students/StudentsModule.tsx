@@ -11,6 +11,7 @@ import type { AuthSession } from "../auth/types";
 import type { Student, StudentDetails } from "../campus/types";
 import { learningForStudent } from "../campus/learning";
 import { StudentForm } from "./StudentForm";
+import { StudentAnagraficaDraft } from "./StudentAnagraficaDraft";
 import { useCampus } from "../campus/CampusProvider";
 import {
   canAssign,
@@ -38,6 +39,7 @@ export function StudentsModule({
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [previewDraft, setPreviewDraft] = useState(false);
   const [message, setMessage] = useState("");
   const filterKeys = ["status", "path", "course", "tutorId", "year"] as const;
   const filtered = students
@@ -72,6 +74,7 @@ export function StudentsModule({
     }
     return false;
   };
+  if (previewDraft) return <StudentAnagraficaDraft onClose={() => setPreviewDraft(false)} />;
   if (student)
     return (
       <div className="cp-stack">
@@ -278,6 +281,11 @@ export function StudentsModule({
             }}
           />
         </div>
+        {canManageStudents(session.role) && (
+          <button type="button" className="cp-button" onClick={() => { setAdding(false); setPreviewDraft(true); }}>
+            Anteprima nuova anagrafica
+          </button>
+        )}
         {canManageStudents(session.role) && (
           <button
             className="cp-button primary"
