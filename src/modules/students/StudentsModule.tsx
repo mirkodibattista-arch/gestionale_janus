@@ -210,7 +210,7 @@ export function StudentsModule({
                 </div>
               ))}
             </div>
-          </Panel>
+          </Panel>}
           {detailTab === "riepilogo" && session.role !== "Tutor" && (
             <Panel title="Documenti ed esami">
               <p>
@@ -261,7 +261,7 @@ export function StudentsModule({
                   </div>
                 ))}
             </div>
-          </Panel>
+          </Panel>}
           {detailTab === "riepilogo" && <Panel title="Storico attività e comunicazioni">
             <div className="cp-list">
               {data.activities
