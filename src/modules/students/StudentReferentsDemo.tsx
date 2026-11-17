@@ -1,13 +1,20 @@
-import { useState, type FormEvent } from "react";
+import { useState, type Dispatch, type SetStateAction, type FormEvent } from "react";
 
 type Referent = { name: string; relation: string; phone: string; email: string };
-export function StudentReferentsDemo({ studentId, editable }: { studentId: string; editable: boolean }) {
-  const [records, setRecords] = useState<Record<string, Referent[]>>({});
+export type ReferentRecords = Record<string, Referent[]>;
+export function StudentReferentsDemo({ studentId, editable, records, setRecords }: {
+  studentId: string;
+  editable: boolean;
+  records: ReferentRecords;
+  setRecords: Dispatch<SetStateAction<ReferentRecords>>;
+}) {
   const [notice, setNotice] = useState("");
   const items = records[studentId] ?? [];
   function add(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!editable) return;
     const form = event.currentTarget;
+    if (!form.checkValidity()) return;
     const data = new FormData(form);
     const name = String(data.get("name") ?? "").trim();
     const phone = String(data.get("phone") ?? "").trim();
@@ -28,6 +35,7 @@ export function StudentReferentsDemo({ studentId, editable }: { studentId: strin
       <div className="cp-list">{items.map((item, i) => <div key={i}>
         <span><b>{item.name} · {item.relation}</b><small>{item.phone} {item.email}</small></span>
         {editable && <button type="button" className="cp-button" onClick={() => {
+          if (!editable) return;
           setRecords(prev => ({ ...prev, [studentId]: (prev[studentId] ?? []).filter((_, j) => j !== i) }));
           setNotice("Referente demo rimosso.");
         }}>Rimuovi</button>}
