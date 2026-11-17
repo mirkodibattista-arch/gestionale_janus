@@ -149,7 +149,79 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
     );
     await route("#/campus/dashboard");
     assert.equal(document.querySelector(".dashboard-shell"), null);
-    await act(async () => root.unmount());
+    // Anteprima isolata: validazioni, transizioni e nessuna mutazione dell'elenco.
+  await start();
+  await login("Admin");
+  await route("/campus/studenti");
+  const rowsBeforePreview = document.querySelector("tbody").textContent;
+  const previewSelector = '[aria-label="Anteprima anagrafica studente"]';
+  async function previewButton(text) {
+    const button = [...document.querySelectorAll("button")].find(b => b.textContent === text);
+    assert.ok(button, text);
+    await act(async () => button.click());
+  }
+  async function submitPreview() {
+    await act(async () => document.querySelector(`${previewSelector} form`).dispatchEvent(
+      new window.Event("submit", { bubbles: true, cancelable: true }),
+    ));
+  }
+  const previewText = () => document.querySelector(previewSelector).textContent;
+  const field = name => document.querySelector(`${previewSelector} input[name="${name}"]`);
+  await previewButton("Anteprima nuova anagrafica");
+  assert.equal(document.querySelectorAll(`${previewSelector} input`).length, 11);
+  assert.equal(document.querySelectorAll(`${previewSelector} select`).length, 3);
+  assert.equal(field("nome").validity.valueMissing, true);
+  await previewButton("Salva bozza (demo)");
+  assert.match(previewText(), /Bozza salvata/);
+  await fill('input[name="nome"]', "   ");
+  await fill('input[name="cognome"]', "Sintetico");
+  await submitPreview();
+  assert.match(previewText(), /Inserisci nome e cognome/);
+  await fill('input[name="nome"]', "Persona Demo");
+  await fill('input[name="codiceFiscale"]', "ABC");
+  await submitPreview();
+  assert.match(previewText(), /16 caratteri/);
+  await fill('input[name="codiceFiscale"]', "");
+  await fill('input[name="cap"]', "12A45");
+  await submitPreview();
+  assert.match(previewText(), /5 cifre/);
+  await fill('input[name="cap"]', "00100");
+  await fill('input[name="email"]', "non-valida");
+  assert.equal(field("email").validity.typeMismatch, true);
+  await fill('input[name="email"]', "persona@example.invalid");
+  await fill('input[name="dataNascita"]', "2099-01-01");
+  assert.equal(field("dataNascita").validity.rangeOverflow, true);
+  await submitPreview();
+  assert.match(previewText(), /non può essere futura/);
+  assert.match(previewText(), /stato: Bozza/);
+  await fill('input[name="dataNascita"]', "2000-01-01");
+  await previewButton("Salva bozza (demo)");
+  await fill('input[name="nome"]', "Modifica non salvata");
+  await previewButton("Ripristina bozza");
+  assert.equal(field("nome").value, "Persona Demo");
+  await submitPreview();
+  assert.match(previewText(), /stato: In verifica/);
+  await fill('input[name="nome"]', "Nuova modifica");
+  assert.match(previewText(), /stato: Bozza/);
+  await previewButton("Ripristina bozza");
+  assert.match(previewText(), /stato: Bozza/);
+  await previewButton("Chiudi anteprima");
+  assert.equal(document.querySelector("tbody").textContent, rowsBeforePreview);
+  await previewButton("Anteprima nuova anagrafica");
+  assert.equal(field("nome").value, "");
+  await fill('input[name="nome"]', "Temporaneo");
+  await start("/campus/studenti", true);
+  assert.equal(document.querySelector(previewSelector), null);
+  for (const role of ["Admin", "Segreteria", "Supervisore", "Didattica", "Amministrazione", "Tutor", "Audit", "Studente"]) {
+    await start();
+    await login(role);
+    await route("/campus/studenti");
+    const available = [...document.querySelectorAll("button")].some(b => b.textContent === "Anteprima nuova anagrafica");
+    assert.equal(available, ["Admin", "Segreteria"].includes(role), role);
+  }
+  console.log("Anagrafica demo: 14 campi, validazioni, bozza/ripristino/invio, reset stato, chiusura/ricaricamento e accessi degli 8 ruoli OK.");
+
+  await act(async () => root.unmount());
     dom.window.close();
     console.log("UI React: disattivazione demo verificata.");
     return;
@@ -285,7 +357,7 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
   await start();
   await login("Admin");
   await route("#/campus/studenti");
-  await click(".cp-toolbar .cp-button");
+  await click(".cp-toolbar .cp-button.primary");
   async function fill(selector, value) {
     const node = document.querySelector(selector);
     await act(async () => {
