@@ -120,6 +120,15 @@ async function click(selector) {
     await sleep();
   });
 }
+async function clickText(text) {
+  const button = [...document.querySelectorAll("button")].find(b => b.textContent.trim() === text);
+  assert.ok(button, text);
+  await act(async () => { button.click(); await sleep(); });
+}
+async function editStudent() {
+  await clickText("Anagrafica");
+  await clickText("Modifica studente");
+}
 async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
   await route("/login");
   await input("login-email", email);
@@ -149,79 +158,7 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
     );
     await route("#/campus/dashboard");
     assert.equal(document.querySelector(".dashboard-shell"), null);
-    // Anteprima isolata: validazioni, transizioni e nessuna mutazione dell'elenco.
-  await start();
-  await login("Admin");
-  await route("/campus/studenti");
-  const rowsBeforePreview = document.querySelector("tbody").textContent;
-  const previewSelector = '[aria-label="Anteprima anagrafica studente"]';
-  async function previewButton(text) {
-    const button = [...document.querySelectorAll("button")].find(b => b.textContent === text);
-    assert.ok(button, text);
-    await act(async () => button.click());
-  }
-  async function submitPreview() {
-    await act(async () => document.querySelector(`${previewSelector} form`).dispatchEvent(
-      new window.Event("submit", { bubbles: true, cancelable: true }),
-    ));
-  }
-  const previewText = () => document.querySelector(previewSelector).textContent;
-  const field = name => document.querySelector(`${previewSelector} input[name="${name}"]`);
-  await previewButton("Anteprima nuova anagrafica");
-  assert.equal(document.querySelectorAll(`${previewSelector} input`).length, 11);
-  assert.equal(document.querySelectorAll(`${previewSelector} select`).length, 3);
-  assert.equal(field("nome").validity.valueMissing, true);
-  await previewButton("Salva bozza (demo)");
-  assert.match(previewText(), /Bozza salvata/);
-  await fill('input[name="nome"]', "   ");
-  await fill('input[name="cognome"]', "Sintetico");
-  await submitPreview();
-  assert.match(previewText(), /Inserisci nome e cognome/);
-  await fill('input[name="nome"]', "Persona Demo");
-  await fill('input[name="codiceFiscale"]', "ABC");
-  await submitPreview();
-  assert.match(previewText(), /16 caratteri/);
-  await fill('input[name="codiceFiscale"]', "");
-  await fill('input[name="cap"]', "12A45");
-  await submitPreview();
-  assert.match(previewText(), /5 cifre/);
-  await fill('input[name="cap"]', "00100");
-  await fill('input[name="email"]', "non-valida");
-  assert.equal(field("email").validity.typeMismatch, true);
-  await fill('input[name="email"]', "persona@example.invalid");
-  await fill('input[name="dataNascita"]', "2099-01-01");
-  assert.equal(field("dataNascita").validity.rangeOverflow, true);
-  await submitPreview();
-  assert.match(previewText(), /non può essere futura/);
-  assert.match(previewText(), /stato: Bozza/);
-  await fill('input[name="dataNascita"]', "2000-01-01");
-  await previewButton("Salva bozza (demo)");
-  await fill('input[name="nome"]', "Modifica non salvata");
-  await previewButton("Ripristina bozza");
-  assert.equal(field("nome").value, "Persona Demo");
-  await submitPreview();
-  assert.match(previewText(), /stato: In verifica/);
-  await fill('input[name="nome"]', "Nuova modifica");
-  assert.match(previewText(), /stato: Bozza/);
-  await previewButton("Ripristina bozza");
-  assert.match(previewText(), /stato: Bozza/);
-  await previewButton("Chiudi anteprima");
-  assert.equal(document.querySelector("tbody").textContent, rowsBeforePreview);
-  await previewButton("Anteprima nuova anagrafica");
-  assert.equal(field("nome").value, "");
-  await fill('input[name="nome"]', "Temporaneo");
-  await start("/campus/studenti", true);
-  assert.equal(document.querySelector(previewSelector), null);
-  for (const role of ["Admin", "Segreteria", "Supervisore", "Didattica", "Amministrazione", "Tutor", "Audit", "Studente"]) {
-    await start();
-    await login(role);
-    await route("/campus/studenti");
-    const available = [...document.querySelectorAll("button")].some(b => b.textContent === "Anteprima nuova anagrafica");
-    assert.equal(available, ["Admin", "Segreteria"].includes(role), role);
-  }
-  console.log("Anagrafica demo: 14 campi, validazioni, bozza/ripristino/invio, reset stato, chiusura/ricaricamento e accessi degli 8 ruoli OK.");
-
-  await act(async () => root.unmount());
+    await act(async () => root.unmount());
     dom.window.close();
     console.log("UI React: disattivazione demo verificata.");
     return;
@@ -386,7 +323,7 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
       .querySelector(".cp-profile-head")
       .textContent.includes("Demo Nuovo Studente"),
   );
-  await click(".cp-stack > .cp-button");
+  await editStudent();
   await fill('input[name="name"]', "Demo Studente Aggiornato");
   await fill('input[name="email"]', "studente1@example.test");
   await submit(".cp-form");
@@ -500,9 +437,10 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
   await route("/campus/studenti");
   await fill('input[aria-label="Cerca studenti"]', "ST-001");
   await click(".cp-student-link");
-  await click(".cp-stack > .cp-button");
+  await editStudent();
   await fill('input[name="city"]', "Firenze");
   await submit(".cp-form");
+  await clickText("Riepilogo");
   const assignment = document.querySelector(".cp-two select");
   await act(async () => {
     assignment.value = "TU-2";
@@ -706,6 +644,158 @@ async function login(role, email = `${role.toLowerCase()}@janus-demo.test`) {
   console.log(
     "Studenti: modifica, duplicati, ricerca email, coerenza reparti e guardie dirette per ruolo OK.",
   );
+  // Fase 2: scheda dall'elenco, sezioni, referenti e matrice di modifica.
+  const referentsSelector = '[aria-label="Referenti dello studente"]';
+  for (const role of ["Admin", "Segreteria", "Supervisore", "Didattica", "Amministrazione", "Tutor", "Audit", "Studente"]) {
+    await start();
+    await login(role);
+    await route("/campus/studenti");
+    if (["Studente", "Amministrazione"].includes(role)) {
+      assert.ok(document.querySelector("h1").textContent.includes("Accesso negato"), role);
+      assert.equal(document.querySelector('[aria-label="Sezioni scheda studente"]'), null);
+      assert.equal(document.querySelector(referentsSelector), null);
+      continue;
+    }
+    await click(".cp-student-link");
+    assert.equal(document.querySelector('[aria-label="Sezioni scheda studente"] [aria-current="page"]').textContent.trim(), "Riepilogo");
+    assert.ok(document.querySelector(".cp-two").textContent.includes("Iscrizione e percorso"));
+    await clickText("Anagrafica");
+    assert.ok(document.querySelector(".cp-two").textContent.includes("Anagrafica e contatti"));
+    assert.ok(!document.querySelector(".cp-two").textContent.includes("Iscrizione e percorso"));
+    const editable = ["Admin", "Segreteria"].includes(role);
+    assert.equal([...document.querySelectorAll("button")].some(b => b.textContent.trim() === "Modifica studente"), editable, role);
+    await clickText("Referenti");
+    assert.ok(document.querySelector(referentsSelector));
+    assert.equal(Boolean(document.querySelector(`${referentsSelector} form`)), editable, role);
+    if (!editable) {
+      assert.equal([...document.querySelectorAll("button")].some(b => b.textContent === "Rimuovi"), false);
+      continue;
+    }
+    const storageBefore = JSON.stringify(Object.entries(window.localStorage));
+    const sessionStorageBefore = JSON.stringify(Object.entries(window.sessionStorage));
+    assert.equal(document.querySelector(`${referentsSelector} input[name="name"]`).validity.valueMissing, true);
+    await fill(`${referentsSelector} input[name="name"]`, "Referente Sintetico");
+    await submit(`${referentsSelector} form`);
+    assert.ok(document.querySelector(`${referentsSelector} [role="status"]`).textContent.includes("almeno un recapito"));
+    assert.equal(Boolean(document.querySelector(`${referentsSelector} .cp-list`)), false);
+    await fill(`${referentsSelector} input[name="email"]`, "non-valida");
+    assert.equal(document.querySelector(`${referentsSelector} input[name="email"]`).validity.typeMismatch, true);
+    await submit(`${referentsSelector} form`);
+    assert.equal(Boolean(document.querySelector(`${referentsSelector} .cp-list`)), false);
+    await fill(`${referentsSelector} input[name="email"]`, "referente@example.invalid");
+    await submit(`${referentsSelector} form`);
+    assert.ok(document.querySelector(`${referentsSelector} .cp-list`).textContent.includes("Referente Sintetico"));
+    assert.equal(document.querySelector(`${referentsSelector} input[name="name"]`).value, "");
+    await clickText("Riepilogo");
+    await clickText("Referenti");
+    assert.ok(document.querySelector(`${referentsSelector} .cp-list`)?.textContent.includes("Referente Sintetico"), "Referenti conservati cambiando sezione");
+    const originalStudentName = document.querySelector(".cp-profile-head h2").textContent;
+    await clickText("Torna agli studenti");
+    const otherLink = [...document.querySelectorAll(".cp-student-link")].find(link => !link.textContent.includes(originalStudentName));
+    assert.ok(otherLink);
+    await act(async () => { otherLink.click(); await sleep(); });
+    await clickText("Referenti");
+    assert.equal(Boolean(document.querySelector(`${referentsSelector} .cp-list`)), false, "Referenti isolati per studente");
+    await clickText("Torna agli studenti");
+    const originalLink = [...document.querySelectorAll(".cp-student-link")].find(link => link.textContent.includes(originalStudentName));
+    assert.ok(originalLink);
+    await act(async () => { originalLink.click(); await sleep(); });
+    await clickText("Referenti");
+    assert.ok(document.querySelector(`${referentsSelector} .cp-list`).textContent.includes("Referente Sintetico"));
+
+    await fill(`${referentsSelector} input[name="name"]`, "Secondo Sintetico");
+    await fill(`${referentsSelector} input[name="phone"]`, "0000000000");
+    await submit(`${referentsSelector} form`);
+    assert.equal(document.querySelectorAll(`${referentsSelector} .cp-list > div`).length, 2);
+    await clickText("Rimuovi");
+    assert.equal(document.querySelectorAll(`${referentsSelector} .cp-list > div`).length, 1);
+    assert.ok(!document.querySelector(`${referentsSelector} .cp-list`).textContent.includes("Referente Sintetico"));
+    await clickText("Rimuovi");
+    assert.equal(Boolean(document.querySelector(`${referentsSelector} .cp-list`)), false);
+    await fill(`${referentsSelector} input[name="name"]`, "Temporaneo Sintetico");
+    await fill(`${referentsSelector} input[name="phone"]`, "0000000000");
+    await submit(`${referentsSelector} form`);
+    assert.equal(JSON.stringify(Object.entries(window.localStorage)), storageBefore);
+    assert.equal(JSON.stringify(Object.entries(window.sessionStorage)), sessionStorageBefore);
+    await start("/campus/studenti", true);
+    await click(".cp-student-link");
+    await clickText("Referenti");
+    assert.equal(Boolean(document.querySelector(`${referentsSelector} .cp-list`)), false);
+  }
+  assert.equal(backendCalls, 0);
+  console.log("Fase 2: apertura, tre sezioni, referenti sintetici aggiunti/rimossi, cambio scheda, reset e permessi degli 8 ruoli OK. Nessuna persistenza o rete.");
+  // Anteprima isolata: validazioni, transizioni e nessuna mutazione dell'elenco.
+  await start();
+  await login("Admin");
+  await route("/campus/studenti");
+  const rowsBeforePreview = document.querySelector("tbody").textContent;
+  const previewSelector = '[aria-label="Anteprima anagrafica studente"]';
+  async function previewButton(text) {
+    const button = [...document.querySelectorAll("button")].find(b => b.textContent === text);
+    assert.ok(button, text);
+    await act(async () => button.click());
+  }
+  async function submitPreview() {
+    await act(async () => document.querySelector(`${previewSelector} form`).dispatchEvent(
+      new window.Event("submit", { bubbles: true, cancelable: true }),
+    ));
+  }
+  const previewText = () => document.querySelector(previewSelector).textContent;
+  const field = name => document.querySelector(`${previewSelector} input[name="${name}"]`);
+  await previewButton("Anteprima nuova anagrafica");
+  assert.equal(document.querySelectorAll(`${previewSelector} input`).length, 11);
+  assert.equal(document.querySelectorAll(`${previewSelector} select`).length, 3);
+  assert.equal(field("nome").validity.valueMissing, true);
+  await previewButton("Salva bozza (demo)");
+  assert.match(previewText(), /Bozza salvata/);
+  await fill('input[name="nome"]', "   ");
+  await fill('input[name="cognome"]', "Sintetico");
+  await submitPreview();
+  assert.match(previewText(), /Inserisci nome e cognome/);
+  await fill('input[name="nome"]', "Persona Demo");
+  await fill('input[name="codiceFiscale"]', "ABC");
+  await submitPreview();
+  assert.match(previewText(), /16 caratteri/);
+  await fill('input[name="codiceFiscale"]', "");
+  await fill('input[name="cap"]', "12A45");
+  await submitPreview();
+  assert.match(previewText(), /5 cifre/);
+  await fill('input[name="cap"]', "00100");
+  await fill('input[name="email"]', "non-valida");
+  assert.equal(field("email").validity.typeMismatch, true);
+  await fill('input[name="email"]', "persona@example.invalid");
+  await fill('input[name="dataNascita"]', "2099-01-01");
+  assert.equal(field("dataNascita").validity.rangeOverflow, true);
+  await submitPreview();
+  assert.match(previewText(), /non può essere futura/);
+  assert.match(previewText(), /stato: Bozza/);
+  await fill('input[name="dataNascita"]', "2000-01-01");
+  await previewButton("Salva bozza (demo)");
+  await fill('input[name="nome"]', "Modifica non salvata");
+  await previewButton("Ripristina bozza");
+  assert.equal(field("nome").value, "Persona Demo");
+  await submitPreview();
+  assert.match(previewText(), /stato: In verifica/);
+  await fill('input[name="nome"]', "Nuova modifica");
+  assert.match(previewText(), /stato: Bozza/);
+  await previewButton("Ripristina bozza");
+  assert.match(previewText(), /stato: Bozza/);
+  await previewButton("Chiudi anteprima");
+  assert.equal(document.querySelector("tbody").textContent, rowsBeforePreview);
+  await previewButton("Anteprima nuova anagrafica");
+  assert.equal(field("nome").value, "");
+  await fill('input[name="nome"]', "Temporaneo");
+  await start("/campus/studenti", true);
+  assert.equal(document.querySelector(previewSelector), null);
+  for (const role of ["Admin", "Segreteria", "Supervisore", "Didattica", "Amministrazione", "Tutor", "Audit", "Studente"]) {
+    await start();
+    await login(role);
+    await route("/campus/studenti");
+    const available = [...document.querySelectorAll("button")].some(b => b.textContent === "Anteprima nuova anagrafica");
+    assert.equal(available, ["Admin", "Segreteria"].includes(role), role);
+  }
+  console.log("Anagrafica demo: 14 campi, validazioni, bozza/ripristino/invio, reset stato, chiusura/ricaricamento e accessi degli 8 ruoli OK.");
+
   await act(async () => root.unmount());
   dom.window.close();
   assert.equal(backendCalls, 0);
