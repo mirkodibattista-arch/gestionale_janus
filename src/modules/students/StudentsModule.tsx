@@ -12,6 +12,7 @@ import type { Student, StudentDetails } from "../campus/types";
 import { learningForStudent } from "../campus/learning";
 import { StudentForm } from "./StudentForm";
 import { StudentAnagraficaDraft } from "./StudentAnagraficaDraft";
+import { StudentReferentsDemo } from "./StudentReferentsDemo";
 import { useCampus } from "../campus/CampusProvider";
 import {
   canAssign,
@@ -41,6 +42,7 @@ export function StudentsModule({
   const [adding, setAdding] = useState(false);
   const [previewDraft, setPreviewDraft] = useState(false);
   const [message, setMessage] = useState("");
+  const [detailTab, setDetailTab] = useState<"riepilogo" | "anagrafica" | "referenti">("riepilogo");
   const filterKeys = ["status", "path", "course", "tutorId", "year"] as const;
   const filtered = students
     .filter(
@@ -83,6 +85,7 @@ export function StudentsModule({
             className="cp-link"
             onClick={() => {
               setSelected(null);
+              setDetailTab("riepilogo");
               setEditing(false);
               setMessage("");
             }}
@@ -105,13 +108,25 @@ export function StudentsModule({
           </div>
           <Badge>{student.status}</Badge>
         </div>
+        <nav aria-label="Sezioni scheda studente" className="cp-toolbar">
+          {(["riepilogo", "anagrafica", "referenti"] as const).map(tab => (
+            <button key={tab} type="button" className="cp-button"
+              aria-current={detailTab === tab ? "page" : undefined}
+              onClick={() => { setDetailTab(tab); setEditing(false); }}>
+              {tab === "riepilogo" ? "Riepilogo" : tab === "anagrafica" ? "Anagrafica" : "Referenti"}
+            </button>
+          ))}
+        </nav>
+        {detailTab === "referenti" && <Panel title="Referenti">
+          <StudentReferentsDemo studentId={student.id} editable={canManageStudents(session.role)} />
+        </Panel>}
         {message && <p role="status">{message}</p>}
-        {canManageStudents(session.role) && (
+        {detailTab === "anagrafica" && canManageStudents(session.role) && (
           <button className="cp-button" onClick={() => setEditing(!editing)}>
             Modifica studente
           </button>
         )}
-        {editing && canManageStudents(session.role) && (
+        {detailTab === "anagrafica" && editing && canManageStudents(session.role) && (
           <Panel
             title="Modifica studente dimostrativo"
             subtitle="Le modifiche durano fino al ricaricamento."
@@ -134,7 +149,7 @@ export function StudentsModule({
             />
           </Panel>
         )}
-        <div className="cp-two">
+        {detailTab !== "referenti" && <div className="cp-two">
           <Panel title="Anagrafica e contatti">
             <dl>
               <dt>Email</dt>
@@ -149,7 +164,7 @@ export function StudentsModule({
               <dd>{student.age} anni</dd>
             </dl>
           </Panel>
-          <Panel title="Iscrizione e percorso">
+          {detailTab === "riepilogo" && <Panel title="Iscrizione e percorso">
             <dl>
               <dt>Percorso</dt>
               <dd>{student.path}</dd>
@@ -161,8 +176,8 @@ export function StudentsModule({
               <dd>{student.year}</dd>
             </dl>
             <Progress value={student.progress} />
-          </Panel>
-          <Panel title="Tutor e piano di studi">
+          </Panel>}
+          {detailTab === "riepilogo" && <Panel title="Tutor e piano di studi">
             <p>{tutorName(student.tutorId)}</p>
             {canAssign(session.role) && (
               <label>
@@ -196,7 +211,7 @@ export function StudentsModule({
               ))}
             </div>
           </Panel>
-          {session.role !== "Tutor" && (
+          {detailTab === "riepilogo" && session.role !== "Tutor" && (
             <Panel title="Documenti ed esami">
               <p>
                 Documento d’identità e titolo scolastico:{" "}
@@ -215,7 +230,7 @@ export function StudentsModule({
               <p>Esame di idoneità · {dateLabel(student.exam)}</p>
             </Panel>
           )}
-          {canFinance(session.role) && (
+          {detailTab === "riepilogo" && canFinance(session.role) && (
             <Panel title="Contratto e pagamenti">
               <p>Contratto demo {student.id} · Recupero scolastico</p>
               <strong className="cp-number">{money(student.balance)}</strong>
@@ -230,7 +245,7 @@ export function StudentsModule({
               )}
             </Panel>
           )}
-          <Panel title="Comunicazioni allo studente">
+          {detailTab === "riepilogo" && <Panel title="Comunicazioni allo studente">
             <div className="cp-list">
               {data.communications
                 .filter(
@@ -247,7 +262,7 @@ export function StudentsModule({
                 ))}
             </div>
           </Panel>
-          <Panel title="Storico attività e comunicazioni">
+          {detailTab === "riepilogo" && <Panel title="Storico attività e comunicazioni">
             <div className="cp-list">
               {data.activities
                 .filter((a) => a.studentId === student.id)
@@ -262,8 +277,8 @@ export function StudentsModule({
                   </div>
                 ))}
             </div>
-          </Panel>
-        </div>
+          </Panel>}
+        </div>}
       </div>
     );
   return (
