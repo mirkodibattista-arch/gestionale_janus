@@ -36,6 +36,7 @@ for (const viewport of [
     await page.getByRole("textbox", { name: "Cerca studenti" }).fill("Sofia");
     await expect(page.locator("tbody tr")).toHaveCount(1);
     await page.locator(".cp-student-link").click();
+    await page.getByRole("button", { name: "Anagrafica", exact: true }).click();
     await page
       .getByRole("button", { name: "Modifica studente", exact: true })
       .click();
