@@ -12,7 +12,7 @@ import type { Student, StudentDetails } from "../campus/types";
 import { learningForStudent } from "../campus/learning";
 import { StudentForm } from "./StudentForm";
 import { StudentAnagraficaDraft } from "./StudentAnagraficaDraft";
-import { StudentReferentsDemo } from "./StudentReferentsDemo";
+import { StudentReferentsDemo, type ReferentRecords } from "./StudentReferentsDemo";
 import { useCampus } from "../campus/CampusProvider";
 import {
   canAssign,
@@ -43,6 +43,7 @@ export function StudentsModule({
   const [previewDraft, setPreviewDraft] = useState(false);
   const [message, setMessage] = useState("");
   const [detailTab, setDetailTab] = useState<"riepilogo" | "anagrafica" | "referenti">("riepilogo");
+  const [referents, setReferents] = useState<ReferentRecords>({});
   const filterKeys = ["status", "path", "course", "tutorId", "year"] as const;
   const filtered = students
     .filter(
@@ -118,7 +119,8 @@ export function StudentsModule({
           ))}
         </nav>
         {detailTab === "referenti" && <Panel title="Referenti">
-          <StudentReferentsDemo studentId={student.id} editable={canManageStudents(session.role)} />
+          <StudentReferentsDemo key={student.id} studentId={student.id}
+            editable={canManageStudents(session.role)} records={referents} setRecords={setReferents} />
         </Panel>}
         {message && <p role="status">{message}</p>}
         {detailTab === "anagrafica" && canManageStudents(session.role) && (
