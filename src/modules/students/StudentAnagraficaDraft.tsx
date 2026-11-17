@@ -35,8 +35,11 @@ export function StudentAnagraficaDraft({ onClose }: { onClose: () => void }) {
   const [saved, setSaved] = useState<Draft | null>(null);
   const [status, setStatus] = useState<"Bozza" | "In verifica">("Bozza");
   const [notice, setNotice] = useState("");
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const change = (key: keyof Draft, value: string) => {
     setDraft(d => ({ ...d, [key]: value }));
+    setStatus("Bozza");
     setNotice("");
   };
   const saveDraft = () => {
@@ -59,6 +62,10 @@ export function StudentAnagraficaDraft({ onClose }: { onClose: () => void }) {
       setNotice("Il CAP deve contenere 5 cifre.");
       return;
     }
+    if (draft.dataNascita && draft.dataNascita > today) {
+      setNotice("La data di nascita non può essere futura.");
+      return;
+    }
     setSaved({ ...draft });
     setStatus("In verifica");
     setNotice("Invio in verifica simulato. Nessun workflow o record reale creato.");
@@ -78,6 +85,7 @@ export function StudentAnagraficaDraft({ onClose }: { onClose: () => void }) {
                 <label key={field.key}>{field.label}
                   <input
                     type={field.type ?? "text"} value={draft[field.key]}
+                    name={field.key} max={field.key === "dataNascita" ? today : undefined}
                     maxLength={field.max} required={field.required}
                     onChange={e => change(field.key, e.target.value)}
                   />
@@ -102,7 +110,7 @@ export function StudentAnagraficaDraft({ onClose }: { onClose: () => void }) {
           <button type="button" className="cp-button" onClick={saveDraft}>Salva bozza (demo)</button>
           <button type="submit" className="cp-button primary">Invia in verifica (demo)</button>
           {saved && <button type="button" className="cp-button" onClick={() => {
-            setDraft({ ...saved }); setNotice("Ultima versione salvata ripristinata.");
+            setDraft({ ...saved }); setStatus("Bozza"); setNotice("Ultima versione salvata ripristinata.");
           }}>Ripristina bozza</button>}
         </div>
         {notice && <p role="status">{notice}</p>}
