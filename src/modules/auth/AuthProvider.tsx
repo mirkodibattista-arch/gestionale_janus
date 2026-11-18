@@ -7,8 +7,9 @@ import {
 } from "react";
 import { createDemoAuthService, DEMO_SESSION_KEY } from "./demoAuthService";
 import type { AuthSession } from "./types";
+import { realClient } from "./realAuth";
+import { useRealAuth } from "./useRealAuth";
 
-// Disattivare la demo non attiva automaticamente il backend reale.
 const demoEnabled = (import.meta.env.VITE_AUTH_MODE ?? "demo") === "demo";
 const service = createDemoAuthService({
   getItem: (key) => window.localStorage.getItem(key),
@@ -18,12 +19,16 @@ const service = createDemoAuthService({
 type AuthContextValue = {
   session: AuthSession | null;
   demoEnabled: boolean;
+  realEnabled: boolean;
+  token: string | null;
+  loading: boolean;
+  notice: string;
   signIn: (email: string, password: string) => Promise<AuthSession>;
-  signOut: () => void;
+  signOut: () => void | Promise<void>;
 };
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+function DemoAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(() =>
     demoEnabled ? service.getSession() : null,
   );
@@ -58,10 +63,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
   };
   return (
-    <AuthContext.Provider value={{ session, demoEnabled, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, demoEnabled, realEnabled: false, token: null, loading: false, notice: "", signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
+}
+
+function RealAuthProvider({ children, client }: {
+  children: ReactNode;
+  client: NonNullable<typeof realClient>;
+}) {
+  const auth = useRealAuth(client);
+  return (
+    <AuthContext.Provider value={{ ...auth, demoEnabled: false, realEnabled: true }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  return realClient
+    ? <RealAuthProvider client={realClient}>{children}</RealAuthProvider>
+    : <DemoAuthProvider>{children}</DemoAuthProvider>;
 }
 
 export function useAuth() {

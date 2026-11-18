@@ -13,10 +13,11 @@ import { Brand } from "../components/Brand";
 import { useAuth } from "../modules/auth/AuthProvider";
 import { demoAccounts } from "../modules/auth/demoAccounts";
 import { navigate } from "../routing/routes";
-import { portalPath } from "../routing/portals";
+import { sessionPath } from "../routing/portals";
 
 export function LoginPage({ notice }: { notice?: string }) {
-  const { signIn, demoEnabled } = useAuth();
+  const { signIn, demoEnabled, realEnabled } = useAuth();
+  const enabled = demoEnabled || realEnabled;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
@@ -30,7 +31,7 @@ export function LoginPage({ notice }: { notice?: string }) {
     setError("");
     try {
       const authenticated = await signIn(email, password);
-      navigate(portalPath(authenticated.role));
+      navigate(sessionPath(authenticated));
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -82,8 +83,7 @@ export function LoginPage({ notice }: { notice?: string }) {
               </div>
             </div>
             <div className="auth-demo-note">
-              <span className="demo-light" /> Ambiente demo locale · Solo
-              identità fittizie
+              <span className="demo-light" /> {realEnabled ? "Accesso aziendale · Ambiente di collaudo" : "Ambiente demo locale · Solo identità fittizie"}
             </div>
           </section>
           <section className="auth-card" aria-labelledby="login-title">
@@ -93,15 +93,16 @@ export function LoginPage({ notice }: { notice?: string }) {
             <div className="auth-eyebrow">BENVENUTO NEL CAMPUS</div>
             <h2 id="login-title">Accedi a JANUS</h2>
             <p>
-              Usa il tuo account demo. Riconosciamo automaticamente il ruolo e
-              il tuo portale.
+              {realEnabled
+                ? "Accedi con il tuo account JANUS per consultare le richieste di orientamento."
+                : "Usa il tuo account demo. Riconosciamo automaticamente il ruolo e il tuo portale."}
             </p>
             {notice && (
               <p className="auth-notice" role="status">
                 {notice}
               </p>
             )}
-            {!demoEnabled && (
+            {!enabled && (
               <div className="auth-error" role="alert">
                 La modalità demo è disattivata. L’autenticazione reale deve
                 ancora essere configurata.
@@ -117,14 +118,14 @@ export function LoginPage({ notice }: { notice?: string }) {
                   id="login-email"
                   type="email"
                   autoComplete="username"
-                  placeholder="nome@janus-demo.test"
+                  placeholder={realEnabled ? "La tua email aziendale" : "nome@janus-demo.test"}
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
                     setError("");
                   }}
                   required
-                  disabled={busy || !demoEnabled}
+                  disabled={busy || !enabled}
                   aria-describedby={error ? "login-error" : undefined}
                 />
               </div>
@@ -137,14 +138,14 @@ export function LoginPage({ notice }: { notice?: string }) {
                   id="login-password"
                   type={visible ? "text" : "password"}
                   autoComplete="current-password"
-                  placeholder="La tua password demo"
+                  placeholder={realEnabled ? "La tua password" : "La tua password demo"}
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     setError("");
                   }}
                   required
-                  disabled={busy || !demoEnabled}
+                  disabled={busy || !enabled}
                   aria-describedby={error ? "login-error" : undefined}
                 />
                 <button
@@ -164,18 +165,18 @@ export function LoginPage({ notice }: { notice?: string }) {
               <button
                 className="auth-submit"
                 type="submit"
-                disabled={busy || !demoEnabled}
+                disabled={busy || !enabled}
               >
                 {busy ? "Accesso in corso…" : "Accedi al campus"}
                 <ArrowRight size={18} />
               </button>
             </form>
-            <button
+            {demoEnabled && <button
               className="recovery-link"
               onClick={() => setRecovery(!recovery)}
             >
               Password dimenticata?
-            </button>
+            </button>}
             {recovery && (
               <p role="status">
                 Recupero email non attivo nella demo. Usa le credenziali
@@ -183,11 +184,11 @@ export function LoginPage({ notice }: { notice?: string }) {
                 successiva.
               </p>
             )}
-            <p className="auth-disclaimer">
+            {demoEnabled && <p className="auth-disclaimer">
               Demo pubblica: credenziali e controlli sono nel browser e non
               costituiscono un’autenticazione sicura. Non inserire password
               reali.
-            </p>
+            </p>}
             {demoEnabled && (
               <details className="auth-accounts">
                 <summary>Consulta gli account dimostrativi</summary>

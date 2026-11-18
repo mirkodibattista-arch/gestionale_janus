@@ -1,3 +1,5 @@
+import { orientationPath } from "../../supabase/functions/_shared/janusOrientation";
+import type { AuthSession } from "../modules/auth/types";
 import type { Role } from "../types/roles";
 import type { CampusModuleId } from "../modules/registry";
 
@@ -13,3 +15,6 @@ export const portalPath = (
       ? "/campus/studente"
       : `/campus/studente/${moduleId}`
     : `/campus/${moduleId}`;
+
+export const sessionPath = (session: AuthSession) =>
+  session.mode === "supabase" ? orientationPath : portalPath(session.role);

@@ -11,3 +11,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 );
 
 import "./modules/campus/campus.css";
+
+import "./modules/orientation-inbox/orientationInbox.css";

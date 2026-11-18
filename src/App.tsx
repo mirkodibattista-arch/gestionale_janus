@@ -2,7 +2,9 @@ import { OrientationPage } from "./pages/OrientationPage";
 import { useOrientationForm } from "./modules/orientation/hooks/useOrientationForm";
 import { useEffect } from "react";
 import { StudentPortalPage } from "./modules/student-portal/StudentPortalPage";
-import { portalForRole, portalPath } from "./routing/portals";
+import { portalForRole, portalPath, sessionPath } from "./routing/portals";
+import { canReadOrientation, orientationPath } from "../supabase/functions/_shared/janusOrientation";
+import { OrientationInbox } from "./modules/orientation-inbox/OrientationInbox";
 import { AuthProvider, useAuth } from "./modules/auth/AuthProvider";
 import { CampusProvider } from "./modules/campus/CampusProvider";
 import { CampusPage } from "./pages/CampusPage";
@@ -21,7 +23,7 @@ function PortalRedirect({ to }: { to: string }) {
 }
 function AppRoutes() {
   const route = useAppRoute();
-  const { session } = useAuth();
+  const { session, token, loading, notice } = useAuth();
   const orientationForm = useOrientationForm();
   if (route.page === "home" || route.page === "orientation")
     return (
@@ -31,18 +33,30 @@ function AppRoutes() {
         formOnly={route.page === "orientation"}
       />
     );
+  if (route.page === "not-found") return <AccessDeniedPage notFound />;
+  if (loading) return <main className="auth-page"><p role="status">Verifica sessione…</p></main>;
   if (route.page === "login")
     return session ? (
-      <PortalRedirect to={portalPath(session.role)} />
+      <PortalRedirect to={sessionPath(session)} />
     ) : (
-      <LoginPage />
+      <LoginPage notice={notice} />
     );
-  if (route.page === "not-found") return <AccessDeniedPage notFound />;
-  // La verifica precede il rendering di qualsiasi vista gestionale.
   if (!session)
     return (
-      <LoginPage notice="Accedi per aprire il campus. Se la sessione è scaduta, inserisci di nuovo le credenziali demo." />
+      <LoginPage notice={notice || "Accedi per aprire il campus."} />
     );
+  if (session.mode === "supabase") {
+    if (route.portal === "studente" || !canReadOrientation(session.role) || !token) {
+      return <AccessDeniedPage />;
+    }
+    if (route.moduleId === "dashboard") return <PortalRedirect to={orientationPath} />;
+    if (route.moduleId !== "richieste-orientamento") return <AccessDeniedPage />;
+    if (!route.portal || window.location.hash.startsWith("#/")) {
+      return <PortalRedirect to={orientationPath} />;
+    }
+    return <OrientationInbox key={session.user.id} token={token} />;
+  }
+  if (route.moduleId === "richieste-orientamento") return <AccessDeniedPage />;
   if (!isModuleId(route.moduleId)) return <AccessDeniedPage notFound />;
   if (!canAccessModule(session.role, route.moduleId))
     return <AccessDeniedPage />;

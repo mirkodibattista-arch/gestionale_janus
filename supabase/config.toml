@@ -1,2 +1,6 @@
 [functions.richiesta-contatto]
 verify_jwt = false
+
+# Il gestore verifica JWT e issuer con Supabase Auth per ogni operazione.
+[functions.richieste-orientamento]
+verify_jwt = false

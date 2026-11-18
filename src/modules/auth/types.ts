@@ -8,7 +8,7 @@ export type AuthSession = {
     tutorId?: string;
     auditStudentIds?: readonly string[];
   };
-  mode: "demo";
+  mode: "demo" | "supabase";
   expiresAt: number;
 };
 
